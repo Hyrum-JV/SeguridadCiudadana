@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#212121"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/txtDescripcion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="202dp"
+        android:gravity="center"
+        android:text="Presione SOS para enviar una alerta a sus contactos de confianza"
+        android:textColor="@android:color/white"
+        android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/btnSOS"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:text="SOS"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        android:layout_marginTop="102dp"
+        android:backgroundTint="#E53935"
+        android:layout_gravity="center"
+        android:padding="0dp" />
+
+</FrameLayout>
