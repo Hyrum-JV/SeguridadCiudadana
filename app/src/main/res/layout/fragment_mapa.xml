@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="#2E2E2E"
     android:orientation="vertical"
-    tools:context=".MapaFragment">
+    tools:context=".Mapa.MapaFragment">
 
     <TextView
         android:id="@+id/txtTituloConfiguracion"

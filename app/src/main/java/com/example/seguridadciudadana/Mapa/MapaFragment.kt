@@ -1,29 +1,40 @@
-package com.example.seguridadciudadana
+package com.example.seguridadciudadana.Mapa
 
 import android.Manifest
+import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.seguridadciudadana.R
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.CurrentLocationRequest
+import com.google.android.gms.location.Granularity
+import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.tasks.CancellationTokenSource
 
 class MapaFragment : Fragment(R.layout.fragment_mapa), OnMapReadyCallback {
 
     private var map: GoogleMap? = null
 
     private val resolverSettings = registerForActivityResult(
-        androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult()
+        ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
-        if (result.resultCode == android.app.Activity.RESULT_OK) {
+        if (result.resultCode == Activity.RESULT_OK) {
             // Usuario encendió ubicación → volvemos a pedirla
             obtenerUbicacionActual(conReintento = true)
         } else {
@@ -96,9 +107,9 @@ class MapaFragment : Fragment(R.layout.fragment_mapa), OnMapReadyCallback {
 
         val tieneFine = ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
         val priority = if (tieneFine)
-            com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY
+            Priority.PRIORITY_HIGH_ACCURACY
         else
-            com.google.android.gms.location.Priority.PRIORITY_BALANCED_POWER_ACCURACY
+            Priority.PRIORITY_BALANCED_POWER_ACCURACY
 
         // 1) lastLocation primero
         try {
@@ -107,19 +118,19 @@ class MapaFragment : Fragment(R.layout.fragment_mapa), OnMapReadyCallback {
                     moverCamara(last.latitude, last.longitude, if (tieneFine) 16f else 14f)
                 } else {
                     // 2) Lectura fresca con timeout
-                    val req = com.google.android.gms.location.CurrentLocationRequest.Builder()
+                    val req = CurrentLocationRequest.Builder()
                         .setPriority(priority)
                         .setMaxUpdateAgeMillis(0)
                         .setGranularity(
                             if (tieneFine)
-                                com.google.android.gms.location.Granularity.GRANULARITY_FINE
+                                Granularity.GRANULARITY_FINE
                             else
-                                com.google.android.gms.location.Granularity.GRANULARITY_COARSE
+                                Granularity.GRANULARITY_COARSE
                         )
                         .build()
 
-                    val cts = com.google.android.gms.tasks.CancellationTokenSource()
-                    android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    val cts = CancellationTokenSource()
+                    Handler(Looper.getMainLooper()).postDelayed({
                         cts.cancel()
                     }, 6000L)
 
@@ -149,26 +160,26 @@ class MapaFragment : Fragment(R.layout.fragment_mapa), OnMapReadyCallback {
         try { map?.isMyLocationEnabled = true } catch (_: SecurityException) {}
 
         val ctx = requireContext()
-        val lr = com.google.android.gms.location.LocationRequest.Builder(
-            com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY, 5000L
+        val lr = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY, 5000L
         ).build()
 
-        val settingsReq = com.google.android.gms.location.LocationSettingsRequest.Builder()
+        val settingsReq = LocationSettingsRequest.Builder()
             .addLocationRequest(lr)
             .setAlwaysShow(true)
             .build()
 
-        val settingsClient = com.google.android.gms.location.LocationServices.getSettingsClient(ctx)
+        val settingsClient = LocationServices.getSettingsClient(ctx)
         settingsClient.checkLocationSettings(settingsReq)
             .addOnSuccessListener {
                 obtenerUbicacionActual(conReintento = true)
             }
             .addOnFailureListener { e ->
-                if (e is com.google.android.gms.common.api.ResolvableApiException) {
+                if (e is ResolvableApiException) {
                     // Abre el diálogo del sistema para encender GPS
                     try {
                         resolverSettings.launch(
-                            androidx.activity.result.IntentSenderRequest.Builder(e.resolution).build()
+                            IntentSenderRequest.Builder(e.resolution).build()
                         )
                     } catch (_: Exception) {}
                 } else {
