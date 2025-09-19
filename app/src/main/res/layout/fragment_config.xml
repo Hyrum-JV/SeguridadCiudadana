@@ -1,14 +1,295 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#2E2E2E"
     tools:context=".ConfigFragment">
 
-    <!-- TODO: Update blank fragment layout -->
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:id="@+id/txtTituloConfiguracion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="40dp"
+        android:text="AJUSTES"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:textColor="#E0E0E0"
+        android:layout_marginBottom="20dp" />
 
-</FrameLayout>
+    <!-- Mensaje SOS -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="350dp"
+        android:layout_height="68dp"
+        android:layout_gravity="center"
+        android:layout_margin="16dp"
+        android:padding="8dp"
+        app:cardCornerRadius="20dp"
+        app:cardBackgroundColor="#757575"
+        app:cardElevation="6dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="16dp">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_msg"
+                android:contentDescription="Notificación"
+                app:tint="@android:color/black" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Mensaje SOS"
+                    android:textColor="@android:color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvMensajeEditable"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ayuda sin peligro"
+                    android:textColor="@android:color/white"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/btnEditarMensaje"
+                android:layout_width="49dp"
+                android:layout_height="49dp"
+                android:src="@drawable/ic_edit_settings"
+                android:scaleType="centerInside"
+                android:background="@null"
+                android:contentDescription="Editar mensaje" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Notificaciones-->
+    <androidx.cardview.widget.CardView
+        android:layout_width="350dp"
+        android:layout_height="68dp"
+        android:layout_gravity="center"
+        android:layout_margin="16dp"
+        android:padding="8dp"
+        app:cardCornerRadius="20dp"
+        app:cardBackgroundColor="#757575"
+        app:cardElevation="6dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="16dp">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_notifications"
+                android:contentDescription="Notificación"
+                app:tint="@android:color/black" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_weight="1"
+                android:text="Notificaciones"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+                android:textSize="16sp" />
+
+            <Switch
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:thumbTint="@android:color/white"
+                android:trackTint="@android:color/black"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Ubicacion-->
+    <androidx.cardview.widget.CardView
+        android:layout_width="350dp"
+        android:layout_height="68dp"
+        android:layout_gravity="center"
+        android:layout_margin="16dp"
+        android:padding="8dp"
+        app:cardCornerRadius="20dp"
+        app:cardBackgroundColor="#757575"
+        app:cardElevation="6dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="16dp">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_location"
+                android:contentDescription="Ubicacion"
+                app:tint="@android:color/black" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_weight="1"
+                android:text="Ubicación"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+                android:textSize="16sp" />
+
+            <Switch
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:thumbTint="@android:color/white"
+                android:trackTint="@android:color/black"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!--Historial-->
+    <androidx.cardview.widget.CardView
+        android:layout_width="350dp"
+        android:layout_height="68dp"
+        android:layout_gravity="center"
+        android:layout_margin="16dp"
+        android:padding="8dp"
+        app:cardCornerRadius="20dp"
+        app:cardBackgroundColor="#757575"
+        app:cardElevation="6dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="16dp">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_smartphone"
+                android:contentDescription="Historial"
+                app:tint="@android:color/black" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_weight="1"
+                android:text="Historial"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+                android:textSize="16sp" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="350dp"
+        android:layout_height="68dp"
+        android:layout_gravity="center"
+        android:layout_margin="16dp"
+        android:padding="8dp"
+        app:cardCornerRadius="20dp"
+        app:cardBackgroundColor="#757575"
+        app:cardElevation="6dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="16dp">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_default_profile"
+                android:contentDescription="Notificación"
+                app:tint="@android:color/black" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Contacto SOS principal"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/ContactoEditable"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="No asignado"
+                    android:textColor="@android:color/white"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="350dp"
+        android:layout_height="68dp"
+        android:layout_gravity="center"
+        android:layout_margin="16dp"
+        android:padding="8dp"
+        app:cardCornerRadius="20dp"
+        app:cardBackgroundColor="#757575"
+        app:cardElevation="6dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="16dp">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_info"
+                android:contentDescription="Informacion"
+                app:tint="@android:color/black" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="15dp"
+                android:text="Acerca de la app"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+                android:textSize="16sp" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+
+
+
+</LinearLayout>
