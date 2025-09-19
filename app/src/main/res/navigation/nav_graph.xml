@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/configFragment"
-        android:name="com.example.seguridadciudadana.ConfigFragment"
+        android:name="com.example.seguridadciudadana.Configuraciones.ConfigFragment"
         android:label="ConfigFragment"
         tools:layout="@layout/fragment_config">
         <action
@@ -17,7 +17,7 @@
 
     <fragment
         android:id="@+id/msjSosFragment"
-        android:name="com.example.seguridadciudadana.MsjSosFragment"
+        android:name="com.example.seguridadciudadana.Configuraciones.MsjSosFragment"
         android:label="MsjFragment"
         tools:layout="@layout/fragment_msj_sos" />
 </navigation>

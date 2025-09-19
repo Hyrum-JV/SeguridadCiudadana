@@ -3,6 +3,10 @@ package com.example.seguridadciudadana
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.example.seguridadciudadana.Configuraciones.ConfigFragment
+import com.example.seguridadciudadana.Inicio.InicioFragment
+import com.example.seguridadciudadana.Mapa.MapaFragment
+import com.example.seguridadciudadana.Perfil.PerfilFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
@@ -13,10 +17,10 @@ class MainActivity : AppCompatActivity() {
 
         val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottom_navigation)
 
-        // Fragmento inicial
+
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
-                .replace(R.id.contenedor_fragmentos, InicioFragment()) // o el que quieras por defecto
+                .replace(R.id.contenedor_fragmentos, InicioFragment())
                 .commit()
         }
 
