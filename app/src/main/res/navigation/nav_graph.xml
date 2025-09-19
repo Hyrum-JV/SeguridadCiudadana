@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/configFragment">
+
+    <fragment
+        android:id="@+id/configFragment"
+        android:name="com.example.seguridadciudadana.ConfigFragment"
+        android:label="ConfigFragment"
+        tools:layout="@layout/fragment_config">
+        <action
+            android:id="@+id/action_configFragment_to_msjSosFragment"
+            app:destination="@id/msjSosFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/msjSosFragment"
+        android:name="com.example.seguridadciudadana.MsjSosFragment"
+        android:label="MsjFragment"
+        tools:layout="@layout/fragment_msj_sos" />
+</navigation>
+
