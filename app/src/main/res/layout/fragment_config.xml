@@ -1,24 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-
 <LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-
-    android:background="#212121"
-
-    tools:context=".ConfigFragment">
-
-    <!-- TODO: Update blank fragment layout -->
-
-
-</LinearLayout>
-
     android:background="#2E2E2E"
     tools:context=".ConfigFragment">
 
@@ -56,7 +42,7 @@
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:src="@drawable/ic_msg"
-                android:contentDescription="Notificación"
+                android:contentDescription="Notificacion"
                 app:tint="@android:color/black" />
 
             <LinearLayout
@@ -116,7 +102,7 @@
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:src="@drawable/ic_notifications"
-                android:contentDescription="Notificación"
+                android:contentDescription="Notificaci贸n"
                 app:tint="@android:color/black" />
 
             <TextView
@@ -167,7 +153,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_weight="1"
-                android:text="Ubicación"
+                android:text="Ubicacion"
                 android:textColor="@android:color/white"
                 android:textStyle="bold"
                 android:textSize="16sp" />
@@ -239,7 +225,7 @@
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:src="@drawable/ic_default_profile"
-                android:contentDescription="Notificación"
+                android:contentDescription="Notificaci贸n"
                 app:tint="@android:color/black" />
 
             <LinearLayout
@@ -307,4 +293,3 @@
 
 
 </LinearLayout>
-
