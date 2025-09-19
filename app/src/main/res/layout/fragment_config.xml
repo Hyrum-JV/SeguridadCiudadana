@@ -22,11 +22,14 @@
 
     <!-- Mensaje SOS -->
     <androidx.cardview.widget.CardView
+        android:id="@+id/cardMensajeSOS"
         android:layout_width="350dp"
         android:layout_height="68dp"
         android:layout_gravity="center"
         android:layout_margin="16dp"
-        android:padding="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
         app:cardCornerRadius="20dp"
         app:cardBackgroundColor="#757575"
         app:cardElevation="6dp">
@@ -68,15 +71,6 @@
                     android:textColor="@android:color/white"
                     android:textSize="12sp" />
             </LinearLayout>
-
-            <ImageButton
-                android:id="@+id/btnEditarMensaje"
-                android:layout_width="49dp"
-                android:layout_height="49dp"
-                android:src="@drawable/ic_edit_settings"
-                android:scaleType="centerInside"
-                android:background="@null"
-                android:contentDescription="Editar mensaje" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
@@ -166,13 +160,16 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!--Historial-->
+    <!-- Historial -->
     <androidx.cardview.widget.CardView
+        android:id="@+id/cardHistorial"
         android:layout_width="350dp"
         android:layout_height="68dp"
         android:layout_gravity="center"
         android:layout_margin="16dp"
-        android:padding="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
         app:cardCornerRadius="20dp"
         app:cardBackgroundColor="#757575"
         app:cardElevation="6dp">
@@ -204,12 +201,16 @@
     </androidx.cardview.widget.CardView>
 
 
+    <!-- Contacto SOS principal -->
     <androidx.cardview.widget.CardView
+        android:id="@+id/cardContactoSOS"
         android:layout_width="350dp"
         android:layout_height="68dp"
         android:layout_gravity="center"
         android:layout_margin="16dp"
-        android:padding="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
         app:cardCornerRadius="20dp"
         app:cardBackgroundColor="#757575"
         app:cardElevation="6dp">
@@ -225,7 +226,11 @@
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:src="@drawable/ic_default_profile"
+
+                android:contentDescription="Contacto SOS"
+
                 android:contentDescription="Notificaci贸n"
+
                 app:tint="@android:color/black" />
 
             <LinearLayout
@@ -254,12 +259,16 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
+    <!-- Acerca de la app -->
     <androidx.cardview.widget.CardView
+        android:id="@+id/cardAcercaDe"
         android:layout_width="350dp"
         android:layout_height="68dp"
         android:layout_gravity="center"
         android:layout_margin="16dp"
-        android:padding="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
         app:cardCornerRadius="20dp"
         app:cardBackgroundColor="#757575"
         app:cardElevation="6dp">
@@ -291,5 +300,8 @@
 
 
 
+</LinearLayout>
+
 
 </LinearLayout>
+
