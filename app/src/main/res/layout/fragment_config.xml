@@ -1,299 +1,297 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="#2E2E2E"
     tools:context=".Configuraciones.ConfigFragment">
 
-    <TextView
-        android:id="@+id/txtTituloConfiguracion"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="40dp"
-        android:text="AJUSTES"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        android:textColor="#E0E0E0"
-        android:layout_marginBottom="20dp" />
+        android:orientation="vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="24dp">
 
-    <!-- Mensaje SOS -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardMensajeSOS"
-        android:layout_width="350dp"
-        android:layout_height="68dp"
-        android:layout_gravity="center"
-        android:layout_margin="16dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:foreground="?attr/selectableItemBackground"
-        app:cardCornerRadius="20dp"
-        app:cardBackgroundColor="#757575"
-        app:cardElevation="6dp">
+        <!-- Título -->
+        <TextView
+            android:id="@+id/txtTituloConfiguracion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="20dp"
+            android:text="AJUSTES"
+            android:textColor="#E0E0E0"
+            android:textSize="28sp"
+            android:textStyle="bold" />
 
-        <LinearLayout
+        <!-- Card: Mensaje de auxilio -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardMensaje"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:padding="16dp">
-
-            <ImageView
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:src="@drawable/ic_msg"
-                android:contentDescription="Notificacion"
-                app:tint="@android:color/black" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardBackgroundColor="#5A5A5A"
+            app:cardCornerRadius="14dp"
+            app:cardUseCompatPadding="true">
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/tvMessageLabel"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Mensaje de auxilio"
+                        android:textColor="#FFFFFF"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnEditarMensaje"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Editar"
+                        android:textAllCaps="false"
+                        android:textColor="#E0E0E0" />
+                </LinearLayout>
 
                 <TextView
+                    android:id="@+id/tvMessageHelper"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Se enviará junto con tu ubicación y el video."
+                    android:textColor="#D0D0D0"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Card: Evidencia (Duración de video) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardEvidencia"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardBackgroundColor="#5A5A5A"
+            app:cardCornerRadius="14dp"
+            app:cardUseCompatPadding="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/tvEvidenciaTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Mensaje SOS"
-                    android:textColor="@android:color/white"
-                    android:textSize="14sp"
+                    android:text="Evidencia"
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <!-- Fila clickeable para elegir duración -->
+                <LinearLayout
+                    android:id="@+id/rowVideoDuration"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingVertical="6dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground">
+
+                    <TextView
+                        android:id="@+id/tvVideoDurationLabel"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Duración del video"
+                        android:textColor="#FFFFFF"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/tvVideoDurationValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="5 s  >"
+                        android:textColor="#E0E0E0"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Card: Modo discreto -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardDiscreto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardBackgroundColor="#5A5A5A"
+            app:cardCornerRadius="14dp"
+            app:cardUseCompatPadding="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/tvDiscreteLabel"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Modo discreto"
+                        android:textColor="#FFFFFF"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchModoDiscreto"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="false" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvDiscreteHelper"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Oscurece la pantalla y silencia sonidos durante el SOS."
+                    android:textColor="#D0D0D0"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Card: Grupo de confianza -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardGrupo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardBackgroundColor="#5A5A5A"
+            app:cardCornerRadius="14dp"
+            app:cardUseCompatPadding="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/tvGrupoTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Grupo de confianza"
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/tvMensajeEditable"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/tvGroupHelper"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Ayuda sin peligro"
-                    android:textColor="@android:color/white"
+                    android:layout_marginTop="6dp"
+                    android:text="Crea un grupo de WhatsApp con tus contactos de emergencia."
+                    android:textColor="#D0D0D0"
                     android:textSize="12sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnEditGroupLink"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Editar enlace"
+                        android:textAllCaps="false" />
+
+                    <Space
+                        android:layout_width="12dp"
+                        android:layout_height="wrap_content" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTestGroupLink"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Probar enlace"
+                        android:textAllCaps="false" />
+                </LinearLayout>
             </LinearLayout>
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
-    <!-- Notificaciones-->
-    <androidx.cardview.widget.CardView
-        android:layout_width="350dp"
-        android:layout_height="68dp"
-        android:layout_gravity="center"
-        android:layout_margin="16dp"
-        android:padding="8dp"
-        app:cardCornerRadius="20dp"
-        app:cardBackgroundColor="#757575"
-        app:cardElevation="6dp">
-
-        <LinearLayout
+        <!-- Card: Acerca de la app -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardAcerca"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:padding="16dp">
-
-            <ImageView
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:src="@drawable/ic_notifications"
-                android:contentDescription="Notificaci贸n"
-                app:tint="@android:color/black" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_weight="1"
-                android:text="Notificaciones"
-                android:textColor="@android:color/white"
-                android:textStyle="bold"
-                android:textSize="16sp" />
-
-            <Switch
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:thumbTint="@android:color/white"
-                android:trackTint="@android:color/black"/>
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-    <!-- Ubicacion-->
-    <androidx.cardview.widget.CardView
-        android:layout_width="350dp"
-        android:layout_height="68dp"
-        android:layout_gravity="center"
-        android:layout_margin="16dp"
-        android:padding="8dp"
-        app:cardCornerRadius="20dp"
-        app:cardBackgroundColor="#757575"
-        app:cardElevation="6dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:padding="16dp">
-
-            <ImageView
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:src="@drawable/ic_location"
-                android:contentDescription="Ubicacion"
-                app:tint="@android:color/black" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_weight="1"
-                android:text="Ubicacion"
-                android:textColor="@android:color/white"
-                android:textStyle="bold"
-                android:textSize="16sp" />
-
-            <Switch
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:thumbTint="@android:color/white"
-                android:trackTint="@android:color/black"/>
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-    <!-- Historial -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardHistorial"
-        android:layout_width="350dp"
-        android:layout_height="68dp"
-        android:layout_gravity="center"
-        android:layout_margin="16dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:foreground="?attr/selectableItemBackground"
-        app:cardCornerRadius="20dp"
-        app:cardBackgroundColor="#757575"
-        app:cardElevation="6dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:padding="16dp">
-
-            <ImageView
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:src="@drawable/ic_smartphone"
-                android:contentDescription="Historial"
-                app:tint="@android:color/black" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_weight="1"
-                android:text="Historial"
-                android:textColor="@android:color/white"
-                android:textStyle="bold"
-                android:textSize="16sp" />
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-
-    <!-- Contacto SOS principal -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardContactoSOS"
-        android:layout_width="350dp"
-        android:layout_height="68dp"
-        android:layout_gravity="center"
-        android:layout_margin="16dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:foreground="?attr/selectableItemBackground"
-        app:cardCornerRadius="20dp"
-        app:cardBackgroundColor="#757575"
-        app:cardElevation="6dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:padding="16dp">
-
-            <ImageView
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:src="@drawable/ic_default_profile"
-                app:tint="@android:color/black" />
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="#5A5A5A"
+            app:cardCornerRadius="14dp"
+            app:cardUseCompatPadding="true">
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:id="@+id/rowAbout"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:layout_marginStart="12dp">
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:id="@+id/tvAbout"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Contacto SOS principal"
-                    android:textColor="@android:color/white"
-                    android:textStyle="bold"
-                    android:textSize="14sp" />
+                    android:layout_weight="1"
+                    android:text="Acerca de la app"
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/ContactoEditable"
+                    android:id="@+id/tvAboutChevron"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="No asignado"
-                    android:textColor="@android:color/white"
-                    android:textSize="12sp" />
+                    android:text=">"
+                    android:textColor="#E0E0E0"
+                    android:textSize="18sp" />
             </LinearLayout>
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
-    <!-- Acerca de la app -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardAcercaDe"
-        android:layout_width="350dp"
-        android:layout_height="68dp"
-        android:layout_gravity="center"
-        android:layout_margin="16dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:foreground="?attr/selectableItemBackground"
-        app:cardCornerRadius="20dp"
-        app:cardBackgroundColor="#757575"
-        app:cardElevation="6dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:padding="16dp">
-
-            <ImageView
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:src="@drawable/ic_info"
-                android:contentDescription="Informacion"
-                app:tint="@android:color/black" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="15dp"
-                android:text="Acerca de la app"
-                android:textColor="@android:color/white"
-                android:textStyle="bold"
-                android:textSize="16sp" />
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-
-
-</LinearLayout>
-
+    </LinearLayout>
+</ScrollView>
