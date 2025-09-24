@@ -4,15 +4,11 @@
         android:icon="@drawable/ic_home"
         android:title="Inicio" />
     <item
-        android:id="@+id/nav_mapa"
-        android:icon="@drawable/ic_location"
-        android:title="Mapa" />
+        android:id="@+id/nav_perfil"
+        android:icon="@drawable/ic_person"
+        android:title="Perfil" />
     <item
         android:id="@+id/nav_config"
         android:icon="@drawable/ic_settings"
         android:title="Configuraciones" />
-    <item
-        android:id="@+id/nav_perfil"
-        android:icon="@drawable/ic_person"
-        android:title="Perfil" />
 </menu>
