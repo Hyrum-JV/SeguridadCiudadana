@@ -28,7 +28,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="202dp"
-        android:fontFamily="@font/afacad"
+        android:textStyle="bold"
         android:gravity="center"
         android:text="Toca para mandar SOS"
         android:textColor="@android:color/white"
