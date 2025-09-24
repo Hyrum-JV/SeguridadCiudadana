@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.seguridadciudadana.Configuraciones.ConfigFragment
 import com.example.seguridadciudadana.Inicio.InicioFragment
-import com.example.seguridadciudadana.Mapa.MapaFragment
 import com.example.seguridadciudadana.Perfil.PerfilFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
@@ -29,10 +28,6 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.nav_inicio -> {
                     loadFragment(InicioFragment())
-                    true
-                }
-                R.id.nav_mapa -> {
-                    loadFragment(MapaFragment())
                     true
                 }
                 R.id.nav_config -> {
