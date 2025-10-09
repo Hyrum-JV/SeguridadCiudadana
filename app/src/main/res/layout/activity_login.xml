@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/login"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5"
+    android:padding="24dp"
+    tools:context=".Login.LoginActivity">
+
+    <ImageView
+        android:id="@+id/logoApp"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+
+        android:contentDescription="Logo de la aplicación"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="80dp"/>
+
+    <!-- Texto de bienvenida -->
+    <TextView
+        android:id="@+id/txtBienvenida"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Bienvenido"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="#212121"
+        app:layout_constraintTop_toBottomOf="@id/logoApp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="24dp"/>
+
+    <!-- Botón de iniciar sesión con Google -->
+    <com.google.android.gms.common.SignInButton
+        android:id="@+id/btnGoogleSignIn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/txtBienvenida"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="32dp" />
+
+    <!-- Campo de PIN (se muestra tras el login con Google) -->
+    <EditText
+        android:id="@+id/editPin"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Crea tu PIN"
+        android:inputType="numberPassword"
+        android:maxLength="6"
+        android:visibility="gone"
+        android:padding="12dp"
+        android:backgroundTint="#6200EE"
+        app:layout_constraintTop_toBottomOf="@id/btnGoogleSignIn"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="24dp"/>
+
+    <!-- Botón para continuar (solo visible tras PIN) -->
+    <Button
+        android:id="@+id/btnContinuar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Continuar"
+        android:visibility="gone"
+        android:backgroundTint="#6200EE"
+        android:textColor="@android:color/white"
+        app:layout_constraintTop_toBottomOf="@id/editPin"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

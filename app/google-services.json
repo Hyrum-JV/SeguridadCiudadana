@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "269265063761",
+    "project_id": "seguridadciudadana-upn2025",
+    "storage_bucket": "seguridadciudadana-upn2025.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:269265063761:android:27249c97cb653fb4190d70",
+        "android_client_info": {
+          "package_name": "com.example.seguridadciudadana"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "269265063761-8aje94rk4qaso56sn6j43etolp5f24fi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.seguridadciudadana",
+            "certificate_hash": "a86cbb0a5ba7650739f4d481001e23d2f3870f16"
+          }
+        },
+        {
+          "client_id": "269265063761-oi52i7f1ba8p1agl2ltqqffraovja10s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDcqgEJ4p83E6ByXlT5G2Zqa4o0QD3gOvY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "269265063761-oi52i7f1ba8p1agl2ltqqffraovja10s.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

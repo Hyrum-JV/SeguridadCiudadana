@@ -1,25 +1,34 @@
 package com.example.seguridadciudadana.Perfil
 
+import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.example.seguridadciudadana.Login.LoginActivity
 import com.example.seguridadciudadana.R
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class PerfilFragment : Fragment() {
 
-    // Views
     private lateinit var ivAvatarPerfil: ImageView
     private lateinit var tvNombrePerfil: TextView
     private lateinit var tvCorreoPerfil: TextView
     private lateinit var tvTelefonoPerfil: TextView
 
+    private val auth = FirebaseAuth.getInstance()
+    private val db = FirebaseFirestore.getInstance()
 
-    // Datos del usuario (estos vendrían de tu base de datos, SharedPreferences, etc.)
+
     private var usuarioActual: Usuario? = null
 
     override fun onCreateView(
@@ -29,11 +38,9 @@ class PerfilFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_perfil, container, false)
 
-        // Inicializar views
         initViews(view)
-
-        // Cargar datos del perfil
         cargarDatosPerfil()
+        configurarClicksEdicion()
 
         return view
     }
@@ -45,79 +52,187 @@ class PerfilFragment : Fragment() {
         tvTelefonoPerfil = view.findViewById(R.id.tv_telefono_perfil)
     }
 
-    private fun cargarDatosPerfil() {
-        // Aquí cargarías los datos desde tu fuente de datos
-        // Por ejemplo, desde SharedPreferences, Room Database, etc.
-        usuarioActual = obtenerDatosUsuario()
+    private fun configurarClicksEdicion() {
+        tvNombrePerfil.setOnClickListener {
+            mostrarDialogEditarNombre()
+        }
 
-        usuarioActual?.let { usuario ->
-            mostrarDatosEnPantalla(usuario)
-        } ?: run {
-            // Mostrar datos de ejemplo si no hay usuario
-            mostrarDatosEjemplo()
+        // Click en teléfono para editar
+        tvTelefonoPerfil.setOnClickListener {
+            mostrarDialogEditarTelefono()
+        }
+
+        tvCorreoPerfil.setOnClickListener {
+            Toast.makeText(requireContext(), "El correo no puede ser editado", Toast.LENGTH_SHORT).show()
+        }
+
+        // Click en avatar para cerrar sesión
+        ivAvatarPerfil.setOnLongClickListener {
+            mostrarDialogCerrarSesion()
+            true
         }
     }
 
-    private fun obtenerDatosUsuario(): Usuario? {
-        // Implementa aquí la lógica para obtener los datos del usuario
-        // Por ejemplo:
-        /*
-        val sharedPref = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        return Usuario(
-            nombre = sharedPref.getString("nombre", "") ?: "",
-            correo = sharedPref.getString("correo", "") ?: "",
-            telefono = sharedPref.getString("telefono", "") ?: "",
-            pin = sharedPref.getString("pin", "") ?: ""
-        )
-        */
+    private fun cargarDatosPerfil() {
+        val user = auth.currentUser
 
-        // Por ahora retornamos null para mostrar datos de ejemplo
-        return null
+        if (user == null) {
+            Toast.makeText(requireContext(), "No hay usuario autenticado", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        cargarFotoPerfil(user.photoUrl?.toString())
+
+        tvCorreoPerfil.text = user.email ?: "No disponible"
+
+        db.collection("usuarios").document(user.uid).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val nombre = document.getString("nombre") ?: "Sin nombre"
+                    val correo = document.getString("correo") ?: user.email ?: ""
+                    val telefono = document.getString("telefono") ?: "Sin teléfono"
+
+                    usuarioActual = Usuario(
+                        nombre = nombre,
+                        correo = correo,
+                        telefono = telefono
+                    )
+
+                    mostrarDatosEnPantalla(usuarioActual!!)
+                } else {
+                    mostrarDatosBasicos(user.displayName ?: "Usuario", user.email ?: "", "Sin teléfono")
+                }
+            }
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "Error al cargar perfil", Toast.LENGTH_SHORT).show()
+                mostrarDatosBasicos(user.displayName ?: "Usuario", user.email ?: "", "Sin teléfono")
+            }
+    }
+
+    private fun cargarFotoPerfil(photoUrl: String?) {
+        if (photoUrl != null && photoUrl.isNotEmpty()) {
+            Glide.with(this)
+                .load(photoUrl)
+                .circleCrop()
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .placeholder(R.drawable.ic_person_placeholder)
+                .error(R.drawable.ic_person_placeholder)
+                .into(ivAvatarPerfil)
+        } else {
+            ivAvatarPerfil.setImageResource(R.drawable.ic_person_placeholder)
+        }
     }
 
     private fun mostrarDatosEnPantalla(usuario: Usuario) {
-        tvNombrePerfil.text = usuario.nombre.ifEmpty { "No disponible" }
+        tvNombrePerfil.text = usuario.nombre.ifEmpty { "Sin nombre" }
         tvCorreoPerfil.text = usuario.correo.ifEmpty { "No disponible" }
-        tvTelefonoPerfil.text = usuario.telefono.ifEmpty { "No disponible" }
+        tvTelefonoPerfil.text = usuario.telefono.ifEmpty { "Sin teléfono" }
     }
 
-    private fun mostrarDatosEjemplo() {
-        tvNombrePerfil.text = "Juan Pérez García"
-        tvCorreoPerfil.text = "juan.perez@email.com"
-        tvTelefonoPerfil.text = "+51 987 654 321"
+    private fun mostrarDatosBasicos(nombre: String, correo: String, telefono: String) {
+        tvNombrePerfil.text = nombre
+        tvCorreoPerfil.text = correo
+        tvTelefonoPerfil.text = telefono
     }
 
-    private fun onEditarPerfilClick() {
-        // Implementa aquí la lógica para editar el perfil
-        // Por ejemplo, navegar a otro fragment o mostrar un dialog
+    private fun mostrarDialogEditarNombre() {
+        val user = auth.currentUser ?: return
 
-        /*
-        // Ejemplo para navegar a fragment de edición:
-        findNavController().navigate(R.id.action_perfilFragment_to_editarPerfilFragment)
+        val dialogView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_editar_campo, null)
 
-        // O mostrar un dialog:
-        val dialog = EditarPerfilDialog()
-        dialog.show(childFragmentManager, "editar_perfil")
-        */
+        val etCampo = dialogView.findViewById<EditText>(R.id.et_editar_campo)
+        val tvTitulo = dialogView.findViewById<TextView>(R.id.tv_dialog_titulo)
 
-        // Por ahora solo mostramos un mensaje
-        Toast.makeText(
-            requireContext(),
-            "Función de edición en desarrollo",
-            Toast.LENGTH_SHORT
-        ).show()
+        tvTitulo.text = "Editar Nombre"
+        etCampo.hint = "Nombre completo"
+        etCampo.setText(usuarioActual?.nombre ?: "")
+
+        AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .setPositiveButton("Guardar") { _, _ ->
+                val nuevoNombre = etCampo.text.toString().trim()
+
+                if (nuevoNombre.isEmpty()) {
+                    Toast.makeText(requireContext(), "El nombre no puede estar vacío", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+
+                actualizarCampo(user.uid, "nombre", nuevoNombre) {
+                    tvNombrePerfil.text = nuevoNombre
+                    usuarioActual = usuarioActual?.copy(nombre = nuevoNombre)
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
-    // Método para actualizar los datos desde otra parte de la app
-    fun actualizarDatos(nuevoUsuario: Usuario) {
-        usuarioActual = nuevoUsuario
-        mostrarDatosEnPantalla(nuevoUsuario)
+    private fun mostrarDialogEditarTelefono() {
+        val user = auth.currentUser ?: return
+
+        val dialogView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_editar_campo, null)
+
+        val etCampo = dialogView.findViewById<EditText>(R.id.et_editar_campo)
+        val tvTitulo = dialogView.findViewById<TextView>(R.id.tv_dialog_titulo)
+
+        tvTitulo.text = "Editar Teléfono"
+        etCampo.hint = "Número de teléfono"
+        etCampo.inputType = android.text.InputType.TYPE_CLASS_PHONE
+        etCampo.setText(usuarioActual?.telefono ?: "")
+
+        AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .setPositiveButton("Guardar") { _, _ ->
+                val nuevoTelefono = etCampo.text.toString().trim()
+
+                if (nuevoTelefono.isEmpty()) {
+                    Toast.makeText(requireContext(), "El teléfono no puede estar vacío", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+
+                actualizarCampo(user.uid, "telefono", nuevoTelefono) {
+                    tvTelefonoPerfil.text = nuevoTelefono
+                    usuarioActual = usuarioActual?.copy(telefono = nuevoTelefono)
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun actualizarCampo(userId: String, campo: String, valor: String, onSuccess: () -> Unit) {
+        val updates = hashMapOf<String, Any>(campo to valor)
+
+        db.collection("usuarios").document(userId)
+            .update(updates)
+            .addOnSuccessListener {
+                Toast.makeText(requireContext(), "Actualizado correctamente", Toast.LENGTH_SHORT).show()
+                onSuccess()
+            }
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "Error al actualizar", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun mostrarDialogCerrarSesion() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Cerrar Sesión")
+            .setMessage("¿Estás seguro que deseas cerrar sesión?")
+            .setPositiveButton("Sí") { _, _ ->
+                auth.signOut()
+
+                val intent = Intent(requireContext(), LoginActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+                requireActivity().finish()
+            }
+            .setNegativeButton("No", null)
+            .show()
     }
 }
 
-// Data class para el modelo de Usuario
 data class Usuario(
     val nombre: String = "",
     val correo: String = "",
-    val telefono: String = "",
+    val telefono: String = ""
 )
