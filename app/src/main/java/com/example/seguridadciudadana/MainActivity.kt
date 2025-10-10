@@ -89,6 +89,7 @@ class MainActivity : AppCompatActivity() {
                 when (menuItem.itemId) {
                     R.id.nav_inicio -> {
                         loadFragment(InicioFragment())
+                        bottomNavigation.selectedItemId = R.id.nav_inicio
                     }
 
                     R.id.nav_configuraciones -> {
@@ -98,12 +99,11 @@ class MainActivity : AppCompatActivity() {
                     R.id.nav_acerca -> {
                         mostrarDialogoAcerca()
                     }
-
                 }
                 drawerLayout.closeDrawer(GravityCompat.START)
                 true
-
             }
+
 
             // Perfil de usuario en el header del Navigation Drawer
             val user: FirebaseUser? = FirebaseAuth.getInstance().currentUser
@@ -151,6 +151,11 @@ class MainActivity : AppCompatActivity() {
                     bottomNavigation.visibility = View.VISIBLE
                 }
             }
+        }
+
+        private fun reemplazarFragmento(fragmento: Fragment){
+        supportFragmentManager.beginTransaction().replace(
+            R.id.contenedor_fragmentos,fragmento).commit()
         }
 
         private fun mostrarDialogoAcerca() {

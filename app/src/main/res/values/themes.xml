@@ -1,9 +1,17 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+
     <style name="Base.Theme.SeguridadCiudadana" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <!-- Colores personalizados -->
+        <item name="colorPrimary">@color/azul_oscuro</item>
+        <item name="colorOnPrimary">@color/blanco</item>
+        <item name="colorSecondary">@color/azul_claro</item>
+        <item name="colorOnSecondary">@color/blanco</item>
+
+        <!-- Barras del sistema -->
+        <item name="android:statusBarColor">@color/azul_oscuro</item>
+        <item name="android:navigationBarColor">@color/azul_oscuro</item>
     </style>
 
     <style name="Theme.SeguridadCiudadana" parent="Base.Theme.SeguridadCiudadana" />
+
 </resources>
