@@ -30,7 +30,7 @@
         android:layout_marginTop="32dp"
         app:cardCornerRadius="16dp"
         app:cardElevation="8dp"
-        app:cardBackgroundColor="#FFFFFF"
+        app:cardBackgroundColor="#00FFFFFF"
         app:layout_constraintTop_toBottomOf="@id/tv_titulo_perfil"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -70,14 +70,13 @@
                     android:id="@+id/tv_nombre_perfil"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/campo_perfil_background"
                     android:padding="16dp"
                     android:textSize="16sp"
-                    android:textColor="#212121"
+                    android:textColor="#FFFFFF"
                     android:drawableStart="@drawable/ic_person"
                     android:drawablePadding="12dp"
                     android:gravity="center_vertical"
-                    tools:text="Juan Pérez García" />
+                    />
 
             </LinearLayout>
 
@@ -100,14 +99,12 @@
                     android:id="@+id/tv_correo_perfil"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/campo_perfil_background"
                     android:padding="16dp"
                     android:textSize="16sp"
-                    android:textColor="#212121"
+                    android:textColor="#FFFFFF"
                     android:drawableStart="@drawable/ic_email_24"
                     android:drawablePadding="12dp"
-                    android:gravity="center_vertical"
-                    tools:text="juan.perez@email.com" />
+                    android:gravity="center_vertical" />
 
             </LinearLayout>
 
@@ -130,14 +127,12 @@
                     android:id="@+id/tv_telefono_perfil"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/campo_perfil_background"
                     android:padding="16dp"
                     android:textSize="16sp"
-                    android:textColor="#212121"
+                    android:textColor="#FFFFFF"
                     android:drawableStart="@drawable/ic_phone_24"
                     android:drawablePadding="12dp"
-                    android:gravity="center_vertical"
-                    tools:text="+51 987 654 321" />
+                    android:gravity="center_vertical" />
 
             </LinearLayout>
 
