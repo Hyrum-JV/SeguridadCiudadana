@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import com.example.seguridadciudadana.R
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.switchmaterial.SwitchMaterial
 
@@ -35,7 +36,6 @@ class ConfigFragment : Fragment() {
     private lateinit var filaDuracionVideo: View
     private lateinit var btnEditarEnlaceGrupo: View
     private lateinit var btnProbarEnlaceGrupo: View
-    private lateinit var filaAcerca: View
 
     private val opcionesDuracion = intArrayOf(5, 10, 15)
 
@@ -57,7 +57,6 @@ class ConfigFragment : Fragment() {
         filaDuracionVideo     = view.findViewById(R.id.filaDuracionVideo)
         btnEditarEnlaceGrupo  = view.findViewById(R.id.btnEditarEnlaceGrupo)
         btnProbarEnlaceGrupo  = view.findViewById(R.id.btnProbarEnlaceGrupo)
-        filaAcerca            = view.findViewById(R.id.filaAcerca)
 
         // Estado inicial
         val p = prefs()
@@ -81,7 +80,6 @@ class ConfigFragment : Fragment() {
 
         btnEditarEnlaceGrupo.setOnClickListener { mostrarDialogoEnlace() }
         btnProbarEnlaceGrupo.setOnClickListener { probarEnlaceGrupo() }
-        filaAcerca.setOnClickListener { mostrarDialogoAcerca() }
     }
 
     // --- Diálogo para mensaje ---
@@ -146,26 +144,6 @@ class ConfigFragment : Fragment() {
                 }
             }
             .setNegativeButton("Cancelar", null)
-            .show()
-    }
-
-    // --- Diálogo "Acerca de la app" ---
-    private fun mostrarDialogoAcerca() {
-        val version = try {
-            requireContext().packageManager
-                .getPackageInfo(requireContext().packageName, 0).versionName
-        } catch (_: Exception) { "1.0.0" }
-
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Acerca de la app")
-            .setMessage(
-                "Versión: $version\n\n" +
-                        "App de seguridad ciudadana.\n" +
-                        "• Envía mensaje y ubicación por WhatsApp.\n" +
-                        "• Graba video corto configurable.\n\n" +
-                        "Privacidad: los datos no se suben a servidores, se quedan en tu dispositivo."
-            )
-            .setPositiveButton("OK", null)
             .show()
     }
 
