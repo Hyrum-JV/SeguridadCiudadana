@@ -6,20 +6,31 @@
     android:id="@+id/login"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
-    android:padding="24dp"
+    android:background="#FAFAFA"
     tools:context=".Login.LoginActivity">
 
+    <!-- Imagen de fondo -->
+    <ImageView
+        android:id="@+id/imgFondo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/imagen_fondo"
+        android:contentDescription="Fondo de Trujillo"/>
+
+    <!-- Logo -->
     <ImageView
         android:id="@+id/logoApp"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-
+        android:layout_width="140dp"
+        android:src="@drawable/logo_app"
+        android:layout_height="140dp"
         android:contentDescription="Logo de la aplicación"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="80dp"/>
+        app:layout_constraintBottom_toTopOf="@id/txtBienvenida"
+        app:layout_constraintVertical_chainStyle="packed"
+        android:layout_marginBottom="32dp"/>
 
     <!-- Texto de bienvenida -->
     <TextView
@@ -27,36 +38,89 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Bienvenido"
-        android:textSize="22sp"
+        android:textSize="28sp"
         android:textStyle="bold"
-        android:textColor="#212121"
+        android:textColor="#FFFFFF"
+        android:letterSpacing="0.02"
         app:layout_constraintTop_toBottomOf="@id/logoApp"
+        app:layout_constraintBottom_toTopOf="@id/txtSubtitulo"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="24dp"/>
+        app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Botón de iniciar sesión con Google -->
-    <com.google.android.gms.common.SignInButton
-        android:id="@+id/btnGoogleSignIn"
+    <!-- Subtítulo -->
+    <TextView
+        android:id="@+id/txtSubtitulo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="Tu seguridad al alcance de tus manos"
+        android:textSize="14sp"
+        android:textColor="#FFFF"
+        android:gravity="center"
         app:layout_constraintTop_toBottomOf="@id/txtBienvenida"
+        app:layout_constraintBottom_toTopOf="@id/cardLogin"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="32dp" />
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="48dp"/>
+
+    <!-- Card contenedor del login -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardLogin"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center"
+        app:cardBackgroundColor="#00FFFFFF"
+        app:layout_constraintTop_toBottomOf="@id/txtSubtitulo"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="80dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:gravity="center">
+
+            <!-- Título "Inicia Sesión" -->
+            <TextView
+                android:id="@+id/txtIniciarSesion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Inicia Sesión"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#FFFF"
+                android:layout_marginBottom="20dp"/>
+
+            <!-- Botón de iniciar sesión con Google -->
+            <com.google.android.gms.common.SignInButton
+                android:id="@+id/btnGoogleSignIn"
+                app:cornerRadius="20dp"
+                android:layout_width="281dp"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
 
     <!-- Campo de PIN (se muestra tras el login con Google) -->
     <EditText
         android:id="@+id/editPin"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="Crea tu PIN"
+        android:hint="Crea tu PIN (6 dígitos)"
         android:inputType="numberPassword"
         android:maxLength="6"
         android:visibility="gone"
-        android:padding="12dp"
-        android:backgroundTint="#6200EE"
-        app:layout_constraintTop_toBottomOf="@id/btnGoogleSignIn"
+        android:padding="16dp"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/cardLogin"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="24dp"/>
@@ -65,13 +129,17 @@
     <Button
         android:id="@+id/btnContinuar"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="56dp"
         android:text="Continuar"
+        android:textSize="16sp"
+        android:textStyle="bold"
         android:visibility="gone"
         android:backgroundTint="#6200EE"
         android:textColor="@android:color/white"
+        app:cornerRadius="12dp"
         app:layout_constraintTop_toBottomOf="@id/editPin"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="16dp"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

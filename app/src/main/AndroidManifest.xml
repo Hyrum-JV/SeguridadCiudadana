@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -48,8 +47,8 @@
             android:exported="false" />
 
         <meta-data
-            android:name="com.google.android.maps.v2.API_KEY"
-            android:value="AIzaSyBqNTY6YJvPZ7kd7DSQk1fTQ3JbCX-LRv0" />
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDhRd5FtyWJo2Xs9TaCyvVT1_l4O3hFelI" />
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />

@@ -13,8 +13,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class CreatePinActivity : AppCompatActivity() {
-
-    private lateinit var tvTitulo: TextView
     private lateinit var editPin: EditText
     private lateinit var btnContinuar: Button
 
@@ -25,12 +23,10 @@ class CreatePinActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_pin)
 
-        tvTitulo = findViewById(R.id.tvTitulo)
         editPin = findViewById(R.id.editPin)
         btnContinuar = findViewById(R.id.btnContinuar)
 
         // Cambiar el título para indicar que es creación
-        tvTitulo.text = "Crear PIN de Seguridad"
         btnContinuar.text = "Guardar PIN"
 
         val user = auth.currentUser ?: run {

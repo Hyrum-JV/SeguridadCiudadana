@@ -253,45 +253,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Card: Acerca de la app -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardAcerca"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardBackgroundColor="#5A5A5A"
-            app:cardCornerRadius="14dp"
-            app:cardUseCompatPadding="true">
-
-            <LinearLayout
-                android:id="@+id/filaAcerca"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:padding="16dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground">
-
-                <TextView
-                    android:id="@+id/tvAcercaTitulo"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Acerca de la app"
-                    android:textColor="#FFFFFF"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvAcercaIndicador"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text=">"
-                    android:textColor="#E0E0E0"
-                    android:textSize="18sp" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
 
     </LinearLayout>
 </ScrollView>

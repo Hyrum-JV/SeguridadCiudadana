@@ -15,10 +15,8 @@ navigationUiKtx = "2.9.4"
 playServicesMaps = "18.2.0"
 playServicesLocation = "21.3.0"
 
-firebaseAuth = "23.1.0"
-firebaseFirestore = "25.1.1"
-firebaseBom = "33.4.0"
 
+firebaseBom = "33.1.1"
 
 
 [libraries]
@@ -36,9 +34,10 @@ androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation
 google-play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
 google-play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 
-firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
-firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
+
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 google-play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version = "21.2.0" }
 
 

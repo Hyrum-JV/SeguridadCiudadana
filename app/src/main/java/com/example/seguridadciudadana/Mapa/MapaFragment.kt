@@ -1,60 +1,106 @@
 package com.example.seguridadciudadana.Mapa
 
+import android.Manifest
+import android.app.AlertDialog
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.os.Bundle
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.example.seguridadciudadana.R
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import android.provider.Settings
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+class MapaFragment : Fragment(), OnMapReadyCallback {
 
-/**
- * A simple [Fragment] subclass.
- * Use the [MapaFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class MapaFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private lateinit var map: GoogleMap
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_mapa, container, false)
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment MapaFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            MapaFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment.getMapAsync(this)
+    }
+
+    override fun onMapReady(googleMap: GoogleMap) {
+        map = googleMap
+
+        // Centrar el mapa en Trujillo
+        val trujillo = LatLng(-8.11599, -79.02998)
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(trujillo, 13f))
+
+        // Intentar activar la ubicación
+        enableMyLocation()
+    }
+
+    private fun checkLocationEnabled() {
+        val locationManager = requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val isEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+
+        if (!isEnabled) {
+            AlertDialog.Builder(requireContext())
+                .setTitle("Ubicación desactivada")
+                .setMessage("Por favor activa tu GPS para mostrar tu ubicación en el mapa.")
+                .setPositiveButton("Activar") { _, _ ->
+                    startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
                 }
-            }
+                .setNegativeButton("Cancelar", null)
+                .show()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        checkLocationEnabled()
+    }
+
+
+    private fun enableMyLocation() {
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // Si no hay permisos, pedirlos
+            requestPermissions(
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                1001
+            )
+            return
+        }
+
+        // Si hay permisos, activar la ubicación
+        map.isMyLocationEnabled = true
+    }
+
+
+    // Cuando el usuario responde al permiso
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        if (requestCode == 1001 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            enableMyLocation()
+        }
     }
 }

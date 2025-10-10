@@ -14,7 +14,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 class UnlockPinActivity : AppCompatActivity() {
 
-    private lateinit var tvTitulo: TextView
     private lateinit var editPin: EditText
     private lateinit var btnContinuar: Button
 
@@ -25,11 +24,9 @@ class UnlockPinActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_pin)
 
-        tvTitulo = findViewById(R.id.tvTitulo)
         editPin = findViewById(R.id.editPin)
         btnContinuar = findViewById(R.id.btnContinuar)
 
-        tvTitulo.text = "Ingresar PIN"
         btnContinuar.text = "Desbloquear"
 
         val user = auth.currentUser ?: run {
