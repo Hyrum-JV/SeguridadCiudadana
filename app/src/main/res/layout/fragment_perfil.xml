@@ -8,7 +8,6 @@
     android:background="#212121"
     tools:context=".Perfil.PerfilFragment">
 
-    <!-- Header con título -->
     <TextView
         android:id="@+id/tv_titulo_perfil"
         android:layout_width="wrap_content"
@@ -22,7 +21,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Card container para la información -->
     <androidx.cardview.widget.CardView
         android:id="@+id/card_perfil_info"
         android:layout_width="0dp"
@@ -43,15 +41,13 @@
             android:orientation="vertical"
             android:padding="64dp">
 
-            <!-- Avatar placeholder -->
             <ImageView
                 android:id="@+id/iv_avatar_perfil"
                 android:layout_width="120dp"
                 android:layout_height="120dp"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginBottom="24dp"
-                android:background="@drawable/circle_background"
-                android:scaleType="centerInside"
+                android:scaleType="centerCrop"
                 android:contentDescription="Foto de perfil" />
 
             <!-- Campo Nombre -->
@@ -85,7 +81,6 @@
 
             </LinearLayout>
 
-            <!-- Campo Correo -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -116,7 +111,6 @@
 
             </LinearLayout>
 
-            <!-- Campo Teléfono -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
