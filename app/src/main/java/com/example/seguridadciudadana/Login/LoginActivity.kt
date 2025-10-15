@@ -6,6 +6,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.example.seguridadciudadana.MainActivity
 import com.example.seguridadciudadana.R
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -15,6 +16,7 @@ import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 
 class LoginActivity : AppCompatActivity() {
 
@@ -28,6 +30,13 @@ class LoginActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
         firestore = FirebaseFirestore.getInstance()
+
+        // Si ya hay un usuario autenticado, pasamos directamente
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            goToNextStep(currentUser.uid)
+            return
+        }
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
@@ -48,11 +57,17 @@ class LoginActivity : AppCompatActivity() {
             try {
                 val account = task.getResult(ApiException::class.java)
                 val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+
                 auth.signInWithCredential(credential).addOnCompleteListener { authResult ->
                     if (authResult.isSuccessful) {
                         val user = auth.currentUser
                         user?.let {
-                            saveUserDataAndRedirect(it.displayName ?: "", it.email ?: "", it.uid)
+                            if (it.isEmailVerified) {  // aunque Google normalmente ya viene verificado
+                                saveUserDataAndRedirect(it.displayName ?: "", it.email ?: "", it.uid)
+                            } else {
+                                Toast.makeText(this, "Cuenta no verificada", Toast.LENGTH_SHORT).show()
+                                auth.signOut()
+                            }
                         }
                     } else {
                         Toast.makeText(this, "Error al iniciar sesión", Toast.LENGTH_SHORT).show()
@@ -73,30 +88,33 @@ class LoginActivity : AppCompatActivity() {
     private fun saveUserDataAndRedirect(name: String, email: String, userId: String) {
         val userMap = hashMapOf(
             "nombre" to name,
-            "correo" to email
+            "correo" to email,
+            "verificado" to true
         )
 
-        // Guardar datos básicos sin sobreescribir el PIN
         firestore.collection("usuarios").document(userId)
-            .set(userMap, com.google.firebase.firestore.SetOptions.merge())
+            .set(userMap, SetOptions.merge())
             .addOnSuccessListener {
-                // Verificar si ya tiene PIN registrado
-                firestore.collection("usuarios").document(userId).get()
-                    .addOnSuccessListener { doc ->
-                        if (doc.exists() && doc.contains("pin")) {
-                            startActivity(Intent(this, UnlockPinActivity::class.java))
-                        } else {
-                            startActivity(Intent(this, CreatePinActivity::class.java))
-                        }
-                        finish()
-                    }
-                    .addOnFailureListener {
-                        startActivity(Intent(this, CreatePinActivity::class.java))
-                        finish()
-                    }
+                goToNextStep(userId)
             }
             .addOnFailureListener {
                 Toast.makeText(this, "Error al guardar datos", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun goToNextStep(userId: String) {
+        firestore.collection("usuarios").document(userId).get()
+            .addOnSuccessListener { doc ->
+                if (doc.exists() && doc.contains("pin")) {
+                    startActivity(Intent(this, UnlockPinActivity::class.java))
+                } else {
+                    startActivity(Intent(this, CreatePinActivity::class.java))
+                }
+                finish()
+            }
+            .addOnFailureListener {
+                startActivity(Intent(this, CreatePinActivity::class.java))
+                finish()
             }
     }
 }
