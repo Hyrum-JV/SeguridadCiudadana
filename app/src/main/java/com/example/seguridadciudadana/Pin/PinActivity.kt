@@ -1,10 +1,9 @@
-package com.example.seguridadciudadana.Login
+package com.example.seguridadciudadana.Pin
 
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.seguridadciudadana.MainActivity
@@ -12,7 +11,8 @@ import com.example.seguridadciudadana.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
-class CreatePinActivity : AppCompatActivity() {
+class PinActivity : AppCompatActivity() {
+
     private lateinit var editPin: EditText
     private lateinit var btnContinuar: Button
 
@@ -26,13 +26,7 @@ class CreatePinActivity : AppCompatActivity() {
         editPin = findViewById(R.id.editPin)
         btnContinuar = findViewById(R.id.btnContinuar)
 
-        // Cambiar el título para indicar que es creación
-        btnContinuar.text = "Guardar PIN"
-
-        val user = auth.currentUser ?: run {
-            finish()
-            return
-        }
+        val user = auth.currentUser ?: return
 
         btnContinuar.setOnClickListener {
             val pin = editPin.text.toString().trim()
@@ -42,16 +36,11 @@ class CreatePinActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            if (!pin.all { it.isDigit() }) {
-                Toast.makeText(this, "El PIN solo debe contener números", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
             // Guardar PIN en Firestore
-            db.collection("usuarios").document(user.uid)
-                .update("pin", pin)
+            val userRef = db.collection("usuarios").document(user.uid)
+            userRef.update("pin", pin)
                 .addOnSuccessListener {
-                    Toast.makeText(this, "PIN creado correctamente", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "PIN guardado correctamente", Toast.LENGTH_SHORT).show()
                     startActivity(Intent(this, MainActivity::class.java))
                     finish()
                 }

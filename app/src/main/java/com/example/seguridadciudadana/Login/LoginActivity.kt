@@ -9,6 +9,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.example.seguridadciudadana.Pin.CreatePinActivity
+import com.example.seguridadciudadana.Pin.UnlockPinActivity
 import com.example.seguridadciudadana.R
 import com.example.seguridadciudadana.Registro.RegisterActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn

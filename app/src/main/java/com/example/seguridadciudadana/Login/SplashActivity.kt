@@ -3,6 +3,8 @@ package com.example.seguridadciudadana.Login
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.example.seguridadciudadana.Pin.CreatePinActivity
+import com.example.seguridadciudadana.Pin.UnlockPinActivity
 import com.example.seguridadciudadana.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore

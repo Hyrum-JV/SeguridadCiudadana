@@ -37,10 +37,10 @@
             android:name=".Login.LoginActivity"
             android:exported="false" />
         <activity
-            android:name=".Login.CreatePinActivity"
+            android:name=".Pin.CreatePinActivity"
             android:exported="false" />
         <activity
-            android:name=".Login.UnlockPinActivity"
+            android:name=".Pin.UnlockPinActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"
