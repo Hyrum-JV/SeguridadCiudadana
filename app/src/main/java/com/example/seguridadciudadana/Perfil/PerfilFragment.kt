@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
@@ -15,6 +16,8 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.seguridadciudadana.Login.LoginActivity
 import com.example.seguridadciudadana.R
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -24,10 +27,11 @@ class PerfilFragment : Fragment() {
     private lateinit var tvNombrePerfil: TextView
     private lateinit var tvCorreoPerfil: TextView
     private lateinit var tvTelefonoPerfil: TextView
+    private lateinit var btnCerrarSesion: Button
 
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
-
+    private lateinit var googleSignInClient: GoogleSignInClient
 
     private var usuarioActual: Usuario? = null
 
@@ -39,8 +43,11 @@ class PerfilFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_perfil, container, false)
 
         initViews(view)
+        setupGoogleSignIn()
         cargarDatosPerfil()
         configurarClicksEdicion()
+
+        btnCerrarSesion.setOnClickListener { mostrarDialogCerrarSesion() }
 
         return view
     }
@@ -50,23 +57,28 @@ class PerfilFragment : Fragment() {
         tvNombrePerfil = view.findViewById(R.id.tv_nombre_perfil)
         tvCorreoPerfil = view.findViewById(R.id.tv_correo_perfil)
         tvTelefonoPerfil = view.findViewById(R.id.tv_telefono_perfil)
+        btnCerrarSesion = view.findViewById(R.id.btn_cerrar_sesion)
+    }
+
+    private fun setupGoogleSignIn() {
+        val gso = com.google.android.gms.auth.api.signin.GoogleSignInOptions.Builder(
+            com.google.android.gms.auth.api.signin.GoogleSignInOptions.DEFAULT_SIGN_IN
+        )
+            .requestEmail()
+            .build()
+
+        googleSignInClient = GoogleSignIn.getClient(requireContext(), gso)
     }
 
     private fun configurarClicksEdicion() {
-        tvNombrePerfil.setOnClickListener {
-            mostrarDialogEditarNombre()
-        }
-
-        // Click en teléfono para editar
-        tvTelefonoPerfil.setOnClickListener {
-            mostrarDialogEditarTelefono()
-        }
+        tvNombrePerfil.setOnClickListener { mostrarDialogEditarNombre() }
+        tvTelefonoPerfil.setOnClickListener { mostrarDialogEditarTelefono() }
 
         tvCorreoPerfil.setOnClickListener {
             Toast.makeText(requireContext(), "El correo no puede ser editado", Toast.LENGTH_SHORT).show()
         }
 
-        // Click en avatar para cerrar sesión
+        // Cerrar sesión con long click en el avatar (extra opcional)
         ivAvatarPerfil.setOnLongClickListener {
             mostrarDialogCerrarSesion()
             true
@@ -82,7 +94,6 @@ class PerfilFragment : Fragment() {
         }
 
         cargarFotoPerfil(user.photoUrl?.toString())
-
         tvCorreoPerfil.text = user.email ?: "No disponible"
 
         db.collection("usuarios").document(user.uid).get()
@@ -92,12 +103,7 @@ class PerfilFragment : Fragment() {
                     val correo = document.getString("correo") ?: user.email ?: ""
                     val telefono = document.getString("telefono") ?: "Sin teléfono"
 
-                    usuarioActual = Usuario(
-                        nombre = nombre,
-                        correo = correo,
-                        telefono = telefono
-                    )
-
+                    usuarioActual = Usuario(nombre, correo, telefono)
                     mostrarDatosEnPantalla(usuarioActual!!)
                 } else {
                     mostrarDatosBasicos(user.displayName ?: "Usuario", user.email ?: "", "Sin teléfono")
@@ -110,7 +116,7 @@ class PerfilFragment : Fragment() {
     }
 
     private fun cargarFotoPerfil(photoUrl: String?) {
-        if (photoUrl != null && photoUrl.isNotEmpty()) {
+        if (!photoUrl.isNullOrEmpty()) {
             Glide.with(this)
                 .load(photoUrl)
                 .circleCrop()
@@ -152,12 +158,10 @@ class PerfilFragment : Fragment() {
             .setView(dialogView)
             .setPositiveButton("Guardar") { _, _ ->
                 val nuevoNombre = etCampo.text.toString().trim()
-
                 if (nuevoNombre.isEmpty()) {
                     Toast.makeText(requireContext(), "El nombre no puede estar vacío", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
-
                 actualizarCampo(user.uid, "nombre", nuevoNombre) {
                     tvNombrePerfil.text = nuevoNombre
                     usuarioActual = usuarioActual?.copy(nombre = nuevoNombre)
@@ -185,12 +189,10 @@ class PerfilFragment : Fragment() {
             .setView(dialogView)
             .setPositiveButton("Guardar") { _, _ ->
                 val nuevoTelefono = etCampo.text.toString().trim()
-
                 if (nuevoTelefono.isEmpty()) {
                     Toast.makeText(requireContext(), "El teléfono no puede estar vacío", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
-
                 actualizarCampo(user.uid, "telefono", nuevoTelefono) {
                     tvTelefonoPerfil.text = nuevoTelefono
                     usuarioActual = usuarioActual?.copy(telefono = nuevoTelefono)
@@ -202,7 +204,6 @@ class PerfilFragment : Fragment() {
 
     private fun actualizarCampo(userId: String, campo: String, valor: String, onSuccess: () -> Unit) {
         val updates = hashMapOf<String, Any>(campo to valor)
-
         db.collection("usuarios").document(userId)
             .update(updates)
             .addOnSuccessListener {
@@ -217,17 +218,22 @@ class PerfilFragment : Fragment() {
     private fun mostrarDialogCerrarSesion() {
         AlertDialog.Builder(requireContext())
             .setTitle("Cerrar Sesión")
-            .setMessage("¿Estás seguro que deseas cerrar sesión?")
+            .setMessage("¿Estás seguro de que deseas cerrar sesión?")
             .setPositiveButton("Sí") { _, _ ->
-                auth.signOut()
-
-                val intent = Intent(requireContext(), LoginActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
-                requireActivity().finish()
+                cerrarSesion()
             }
             .setNegativeButton("No", null)
             .show()
+    }
+
+    private fun cerrarSesion() {
+        auth.signOut()
+        googleSignInClient.signOut().addOnCompleteListener {
+            val intent = Intent(requireContext(), LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            requireActivity().finish()
+        }
     }
 }
 
