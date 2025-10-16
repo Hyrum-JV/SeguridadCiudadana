@@ -3,11 +3,11 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/login"
+    android:id="@+id/register"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FAFAFA"
-    tools:context=".Login.LoginActivity">
+    tools:context=".Registro.RegisterActivity">
 
     <!-- Imagen de fondo -->
     <ImageView
@@ -32,21 +32,21 @@
             <!-- Logo -->
             <ImageView
                 android:id="@+id/logoApp"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
                 android:src="@drawable/logo_app"
                 android:contentDescription="Logo de la aplicación"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                android:layout_marginTop="40dp"/>
+                android:layout_marginTop="32dp"/>
 
             <!-- Texto de bienvenida -->
             <TextView
-                android:id="@+id/txtBienvenida"
+                android:id="@+id/txtCrearCuenta"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Bienvenido"
+                android:text="Crear Cuenta"
                 android:textSize="28sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFF"
@@ -54,25 +54,25 @@
                 app:layout_constraintTop_toBottomOf="@id/logoApp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                android:layout_marginTop="24dp"/>
+                android:layout_marginTop="20dp"/>
 
             <!-- Subtítulo -->
             <TextView
                 android:id="@+id/txtSubtitulo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tu seguridad al alcance de tus manos"
+                android:text="Únete a nuestra comunidad"
                 android:textSize="14sp"
                 android:textColor="#FFFFFF"
                 android:gravity="center"
-                app:layout_constraintTop_toBottomOf="@id/txtBienvenida"
+                app:layout_constraintTop_toBottomOf="@id/txtCrearCuenta"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 android:layout_marginTop="8dp"/>
 
-            <!-- Card contenedor del login -->
+            <!-- Card contenedor del registro -->
             <androidx.cardview.widget.CardView
-                android:id="@+id/cardLogin"
+                android:id="@+id/cardRegister"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 app:cardBackgroundColor="#FFFFFF"
@@ -83,7 +83,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 android:layout_marginStart="32dp"
                 android:layout_marginEnd="32dp"
-                android:layout_marginTop="32dp">
+                android:layout_marginTop="24dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -91,27 +91,88 @@
                     android:orientation="vertical"
                     android:padding="24dp">
 
-                    <!-- Título "Inicia Sesión" -->
+                    <!-- Título "Regístrate" -->
                     <TextView
-                        android:id="@+id/txtIniciarSesion"
+                        android:id="@+id/txtRegistrate"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Inicia Sesión"
+                        android:text="Regístrate"
                         android:textSize="20sp"
                         android:textStyle="bold"
                         android:textColor="#333333"
                         android:layout_gravity="center"
-                        android:layout_marginBottom="24dp"/>
+                        android:layout_marginBottom="20dp"/>
 
-                    <!-- Campo de correo -->
+                    <!-- Campo de Nombre -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/inputLayoutNombre"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Nombre"
+                        app:startIconDrawable="@android:drawable/ic_menu_myplaces"
+                        app:boxStrokeColor="#3B4D31"
+                        app:hintTextColor="#3B4D31"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/editNombre"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPersonName|textCapWords"
+                            android:textSize="16sp"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Campo de Apellido -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/inputLayoutApellido"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Apellido"
+                        app:startIconDrawable="@android:drawable/ic_menu_myplaces"
+                        app:boxStrokeColor="#3B4D31"
+                        app:hintTextColor="#3B4D31"
+                        android:layout_marginTop="12dp"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/editApellido"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPersonName|textCapWords"
+                            android:textSize="16sp"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Campo de Celular -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/inputLayoutCelular"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Celular"
+                        app:startIconDrawable="@android:drawable/stat_sys_phone_call"
+                        app:boxStrokeColor="#3B4D31"
+                        app:hintTextColor="#3B4D31"
+                        android:layout_marginTop="12dp"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/editCelular"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="phone"
+                            android:maxLength="9"
+                            android:textSize="16sp"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Campo de Correo -->
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/inputLayoutEmail"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Correo electrónico"
                         app:startIconDrawable="@android:drawable/ic_dialog_email"
-                        app:boxStrokeColor="#6200EE"
-                        app:hintTextColor="#6200EE"
+                        app:boxStrokeColor="#3B4D31"
+                        app:hintTextColor="#3B4D31"
+                        android:layout_marginTop="12dp"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -122,7 +183,7 @@
                             android:textSize="16sp"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <!-- Campo de contraseña -->
+                    <!-- Campo de Contraseña -->
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/inputLayoutPassword"
                         android:layout_width="match_parent"
@@ -130,9 +191,9 @@
                         android:hint="Contraseña"
                         app:startIconDrawable="@android:drawable/ic_lock_idle_lock"
                         app:endIconMode="password_toggle"
-                        app:boxStrokeColor="#6200EE"
-                        app:hintTextColor="#6200EE"
-                        android:layout_marginTop="16dp"
+                        app:boxStrokeColor="#3B4D31"
+                        app:hintTextColor="#3B4D31"
+                        android:layout_marginTop="12dp"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -143,25 +204,12 @@
                             android:textSize="16sp"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <!-- Texto "¿Olvidaste la contraseña?" -->
-                    <TextView
-                        android:id="@+id/txtOlvidastePassword"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="¿Olvidaste la contraseña?"
-                        android:textSize="14sp"
-                        android:textColor="#3B4D31"
-                        android:textStyle="bold"
-                        android:layout_gravity="end"
-                        android:layout_marginTop="8dp"
-                        android:padding="4dp"/>
-
-                    <!-- Botón de Ingresar -->
+                    <!-- Botón de Registrar -->
                     <Button
-                        android:id="@+id/btnIngresar"
+                        android:id="@+id/btnRegistrar"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
-                        android:text="Ingresar"
+                        android:text="Registrar"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:backgroundTint="#3B4D31"
@@ -200,14 +248,14 @@
                             android:background="#CCCCCC"/>
                     </LinearLayout>
 
-                    <!-- Botón de iniciar sesión con Google -->
+                    <!-- Botón de registrarse con Google -->
                     <com.google.android.gms.common.SignInButton
-                        android:id="@+id/btnGoogleSignIn"
+                        android:id="@+id/btnGoogleSignUp"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"/>
 
-                    <!-- Texto "Registrarse" -->
+                    <!-- Texto "Iniciar Sesión" -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -218,15 +266,15 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="¿No tienes cuenta? "
+                            android:text="¿Ya tienes cuenta? "
                             android:textSize="14sp"
                             android:textColor="#666666"/>
 
                         <TextView
-                            android:id="@+id/txtRegistrarse"
+                            android:id="@+id/txtIniciarSesion"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Registrarse"
+                            android:text="Iniciar Sesión"
                             android:textSize="14sp"
                             android:textColor="#3B4D31"
                             android:textStyle="bold"
