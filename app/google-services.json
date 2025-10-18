@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "269265063761-0fm6v87d5io7261b79regk994kbv72dj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.seguridadciudadana",
+            "certificate_hash": "97a92d04f88653cb8c376023e4d4a70c43169a48"
+          }
+        },
+        {
           "client_id": "269265063761-2h5i17h2qvuivlimh21uv92jiosp69pc.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -27,6 +35,14 @@
           "android_info": {
             "package_name": "com.example.seguridadciudadana",
             "certificate_hash": "a86cbb0a5ba7650739f4d481001e23d2f3870f16"
+          }
+        },
+        {
+          "client_id": "269265063761-ikppv2f9ir5cldrjva5vddo9v5g2saqn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.seguridadciudadana",
+            "certificate_hash": "f456ec083e760c022393e4b008dddd4c9fdbedbb"
           }
         },
         {
