@@ -2,24 +2,26 @@ package com.example.seguridadciudadana.Perfil
 
 import android.app.AlertDialog
 import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.signature.ObjectKey
 import com.example.seguridadciudadana.Login.LoginActivity
 import com.example.seguridadciudadana.R
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import java.io.File
+import java.io.FileOutputStream
 
 class PerfilFragment : Fragment() {
 
@@ -32,6 +34,82 @@ class PerfilFragment : Fragment() {
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
     private lateinit var googleSignInClient: GoogleSignInClient
+
+    private var imageUri: Uri? = null
+
+    // Launcher para abrir la galería
+    private val pickImageLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            imageUri = it
+            guardarImagen(it)
+            actualizarFotoLocal()
+        }
+    }
+
+    // Launcher para tomar una foto
+    private val takePhotoLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicturePreview()
+    ) { bitmap ->
+        bitmap?.let {
+            guardarBitmap(it)
+            actualizarFotoLocal()
+            Toast.makeText(requireContext(), "Foto tomada", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Guarda imagen elegida del almacenamiento en el almacenamiento interno
+    private fun guardarImagen(uri: Uri) {
+        val user = auth.currentUser ?: return
+        val inputStream = requireContext().contentResolver.openInputStream(uri) ?: return
+        val file = File(requireContext().filesDir, "${user.uid}_perfil.jpg")
+        val outputStream = FileOutputStream(file)
+        inputStream.copyTo(outputStream)
+        inputStream.close()
+        outputStream.close()
+
+        // Guardamos la ruta local en Firestore solo como referencia (no es obligatorio)
+        db.collection("usuarios").document(user.uid)
+            .update("fotoLocal", file.absolutePath)
+            .addOnSuccessListener {
+                Toast.makeText(requireContext(), "Foto guardada localmente", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "Error al guardar ruta", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    // Guarda la foto tomada con la cámara
+    private fun guardarBitmap(bitmap: Bitmap) {
+        val user = auth.currentUser ?: return
+        val file = File(requireContext().filesDir, "${user.uid}_perfil.jpg")
+        val outputStream = FileOutputStream(file)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
+        outputStream.close()
+
+        db.collection("usuarios").document(user.uid)
+            .update("fotoLocal", file.absolutePath)
+    }
+
+    // Carga o actualiza la foto local del usuario
+    private fun actualizarFotoLocal() {
+        val user = auth.currentUser ?: return
+        val file = File(requireContext().filesDir, "${user.uid}_perfil.jpg")
+
+        if (file.exists()) {
+            Glide.with(this)
+                .load(file)
+                .signature(ObjectKey(System.currentTimeMillis())) // fuerza recarga
+                .circleCrop()
+                .skipMemoryCache(true)
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .placeholder(R.drawable.ic_person_placeholder)
+                .into(ivAvatarPerfil)
+        } else {
+            ivAvatarPerfil.setImageResource(R.drawable.ic_person_placeholder)
+        }
+    }
 
     private var usuarioActual: Usuario? = null
 
@@ -48,6 +126,8 @@ class PerfilFragment : Fragment() {
         configurarClicksEdicion()
 
         btnCerrarSesion.setOnClickListener { mostrarDialogCerrarSesion() }
+
+        ivAvatarPerfil.setOnClickListener { showImageOptionsDialog() }
 
         return view
     }
@@ -77,23 +157,11 @@ class PerfilFragment : Fragment() {
         tvCorreoPerfil.setOnClickListener {
             Toast.makeText(requireContext(), "El correo no puede ser editado", Toast.LENGTH_SHORT).show()
         }
-
-        // Cerrar sesión con long click en el avatar (extra opcional)
-        ivAvatarPerfil.setOnLongClickListener {
-            mostrarDialogCerrarSesion()
-            true
-        }
     }
 
     private fun cargarDatosPerfil() {
-        val user = auth.currentUser
+        val user = auth.currentUser ?: return
 
-        if (user == null) {
-            Toast.makeText(requireContext(), "No hay usuario autenticado", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        cargarFotoPerfil(user.photoUrl?.toString())
         tvCorreoPerfil.text = user.email ?: "No disponible"
 
         db.collection("usuarios").document(user.uid).get()
@@ -102,31 +170,49 @@ class PerfilFragment : Fragment() {
                     val nombre = document.getString("nombre") ?: "Sin nombre"
                     val correo = document.getString("correo") ?: user.email ?: ""
                     val telefono = document.getString("telefono") ?: "Sin teléfono"
+                    val fotoLocal = document.getString("fotoLocal")
 
                     usuarioActual = Usuario(nombre, correo, telefono)
                     mostrarDatosEnPantalla(usuarioActual!!)
+                    cargarFotoLocal(fotoLocal)
                 } else {
                     mostrarDatosBasicos(user.displayName ?: "Usuario", user.email ?: "", "Sin teléfono")
                 }
             }
             .addOnFailureListener {
                 Toast.makeText(requireContext(), "Error al cargar perfil", Toast.LENGTH_SHORT).show()
-                mostrarDatosBasicos(user.displayName ?: "Usuario", user.email ?: "", "Sin teléfono")
             }
     }
 
-    private fun cargarFotoPerfil(photoUrl: String?) {
-        if (!photoUrl.isNullOrEmpty()) {
-            Glide.with(this)
-                .load(photoUrl)
-                .circleCrop()
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .placeholder(R.drawable.ic_person_placeholder)
-                .error(R.drawable.ic_person_placeholder)
-                .into(ivAvatarPerfil)
-        } else {
-            ivAvatarPerfil.setImageResource(R.drawable.ic_person_placeholder)
+    private fun cargarFotoLocal(fotoLocal: String?) {
+        if (!fotoLocal.isNullOrEmpty()) {
+            val file = File(fotoLocal)
+            if (file.exists()) {
+                Glide.with(this)
+                    .load(file)
+                    .signature(ObjectKey(System.currentTimeMillis()))
+                    .circleCrop()
+                    .skipMemoryCache(true)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .placeholder(R.drawable.ic_person_placeholder)
+                    .into(ivAvatarPerfil)
+                return
+            }
         }
+        ivAvatarPerfil.setImageResource(R.drawable.ic_person_placeholder)
+    }
+
+    private fun showImageOptionsDialog() {
+        val opciones = arrayOf("Tomar foto", "Seleccionar de la galería")
+        AlertDialog.Builder(requireContext())
+            .setTitle("Cambiar foto de perfil")
+            .setItems(opciones) { _, which ->
+                when (which) {
+                    0 -> takePhotoLauncher.launch(null)
+                    1 -> pickImageLauncher.launch("image/*")
+                }
+            }
+            .show()
     }
 
     private fun mostrarDatosEnPantalla(usuario: Usuario) {
@@ -219,9 +305,7 @@ class PerfilFragment : Fragment() {
         AlertDialog.Builder(requireContext())
             .setTitle("Cerrar Sesión")
             .setMessage("¿Estás seguro de que deseas cerrar sesión?")
-            .setPositiveButton("Sí") { _, _ ->
-                cerrarSesion()
-            }
+            .setPositiveButton("Sí") { _, _ -> cerrarSesion() }
             .setNegativeButton("No", null)
             .show()
     }

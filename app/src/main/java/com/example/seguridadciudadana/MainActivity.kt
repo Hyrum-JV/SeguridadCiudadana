@@ -19,7 +19,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FirebaseFirestore
+import java.io.File
 
 class MainActivity : AppCompatActivity() {
 
@@ -106,25 +107,58 @@ class MainActivity : AppCompatActivity() {
 
 
             // Perfil de usuario en el header del Navigation Drawer
-            val user: FirebaseUser? = FirebaseAuth.getInstance().currentUser
+            val user = FirebaseAuth.getInstance().currentUser
             val headerView = navigationView.getHeaderView(0)
-            val tvUserName = headerView.findViewById<TextView>(R.id.tv_user_name)
-            val tvUserEmail = headerView.findViewById<TextView>(R.id.tv_user_email)
+
+            val tvNombre = headerView.findViewById<TextView>(R.id.tv_user_name)
+            val tvCorreo = headerView.findViewById<TextView>(R.id.tv_user_email)
             val imgUser = headerView.findViewById<ImageView>(R.id.img_user)
 
-            if (user != null) {
-                tvUserName.text = user.displayName ?: "Usuario sin nombre"
-                tvUserEmail.text = user.email ?: "Correo no disponible"
-                user.photoUrl?.let { uri ->
-                    Glide.with(this)
-                        .load(uri)
-                        .placeholder(R.drawable.ic_person)
-                        .into(imgUser)
-                }
-            } else {
-                tvUserName.text = "Invitado"
-                tvUserEmail.text = "No autenticado"
+            if (user == null) {
+                tvNombre.text = "Invitado"
+                tvCorreo.text = "No autenticado"
+                imgUser.setImageResource(R.drawable.ic_person_placeholder)
+                return
             }
+
+            val db = FirebaseFirestore.getInstance()
+            db.collection("usuarios").document(user.uid).get()
+                .addOnSuccessListener { document ->
+                    val nombre = document.getString("nombre") ?: "Usuario"
+                    val correo = document.getString("correo") ?: user.email ?: "Sin correo"
+                    val fotoUrl = document.getString("fotoPerfil")
+
+                    tvNombre.text = nombre
+                    tvCorreo.text = correo
+
+                    val userId = user.uid
+                    val localFile = File(filesDir, "${userId}_perfil.jpg")
+
+                    if (localFile.exists()) {
+                        // 🖼️ Cargar la imagen localmente guardada
+                        Glide.with(this)
+                            .load(localFile)
+                            .circleCrop()
+                            .skipMemoryCache(true)
+                            .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.NONE)
+                            .placeholder(R.drawable.ic_person_placeholder)
+                            .into(imgUser)
+                    } else if (!fotoUrl.isNullOrEmpty()) {
+                        // 🔗 Cargar imagen desde Firestore (si existiera)
+                        Glide.with(this)
+                            .load(fotoUrl)
+                            .circleCrop()
+                            .placeholder(R.drawable.ic_person_placeholder)
+                            .error(R.drawable.ic_person_placeholder)
+                            .into(imgUser)
+                    } else {
+                        imgUser.setImageResource(R.drawable.ic_person_placeholder)
+                    }
+                }
+                .addOnFailureListener {
+                    tvNombre.text = "Error al cargar"
+                    tvCorreo.text = user.email ?: "Sin correo"
+                }
 
             val cardPerfil = headerView.findViewById<androidx.cardview.widget.CardView>(R.id.card_user)
 
@@ -151,11 +185,6 @@ class MainActivity : AppCompatActivity() {
                     bottomNavigation.visibility = View.VISIBLE
                 }
             }
-        }
-
-        private fun reemplazarFragmento(fragmento: Fragment){
-        supportFragmentManager.beginTransaction().replace(
-            R.id.contenedor_fragmentos,fragmento).commit()
         }
 
         private fun mostrarDialogoAcerca() {
