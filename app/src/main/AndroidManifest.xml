@@ -20,6 +20,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SeguridadCiudadana">
         <activity
+            android:name=".Perfil.MostrarQRActivity"
+            android:exported="false" />
+        <activity
             android:name=".Registro.RegisterActivity"
             android:exported="false" />
         <activity
