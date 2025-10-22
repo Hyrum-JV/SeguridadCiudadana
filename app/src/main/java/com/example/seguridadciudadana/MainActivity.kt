@@ -15,6 +15,7 @@ import com.example.seguridadciudadana.Configuraciones.ConfigFragment
 import com.example.seguridadciudadana.Inicio.InicioFragment
 import com.example.seguridadciudadana.Login.LoginActivity
 import com.example.seguridadciudadana.Mapa.MapaFragment
+import com.example.seguridadciudadana.Contactos.ContactosFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationView
@@ -65,6 +66,14 @@ class MainActivity : AppCompatActivity() {
 
                     R.id.nav_mapa -> {
                         loadFragment(MapaFragment())
+                        true
+                    }
+
+                    R.id.nav_contactos -> {
+                        val fragment = ContactosFragment()
+                        supportFragmentManager.beginTransaction()
+                            .replace(R.id.contenedor_fragmentos, fragment)
+                            .commit()
                         true
                     }
 
