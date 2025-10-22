@@ -1,5 +1,5 @@
 package com.example.seguridadciudadana
-
+import com.example.seguridadciudadana.Notificaciones.NotificacionesFragment
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -20,6 +20,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.messaging.FirebaseMessaging
+import android.util.Log
 import java.io.File
 
 class MainActivity : AppCompatActivity() {
@@ -92,9 +95,11 @@ class MainActivity : AppCompatActivity() {
                         loadFragment(InicioFragment())
                         bottomNavigation.selectedItemId = R.id.nav_inicio
                     }
-
                     R.id.nav_configuraciones -> {
                         loadFragment(ConfigFragment())
+                    }
+                    R.id.nav_notificaciones -> {
+                        loadFragment(NotificacionesFragment())
                     }
 
                     R.id.nav_acerca -> {
@@ -166,6 +171,31 @@ class MainActivity : AppCompatActivity() {
                 drawerLayout.closeDrawer(GravityCompat.START)
                 loadFragment(com.example.seguridadciudadana.Perfil.PerfilFragment())
             }
+            // --- Permiso de notificaciones (Android 13+) ---
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                val granted = checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) ==
+                        android.content.pm.PackageManager.PERMISSION_GRANTED
+                if (!granted) {
+                    requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1001)
+                }
+            }
+            //Verificar suscripción
+            FirebaseMessaging.getInstance().subscribeToTopic("trujillo-seguridad")
+                .addOnCompleteListener { task ->
+                    val msg = if (task.isSuccessful)
+                        "✅ Suscrito correctamente al tema trujillo-seguridad"
+                    else
+                        "❌ Error al suscribirse al tema"
+                    Log.d("FirebaseTopic", msg)
+                }
+
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.d("FCM_TOKEN", "Token: ${task.result}")
+                } else {
+                    Log.e("FCM_TOKEN", "No se pudo obtener token", task.exception)
+                }
+            }
 
         }
 
@@ -206,4 +236,17 @@ class MainActivity : AppCompatActivity() {
                 .setPositiveButton("OK", null)
                 .show()
         }
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 1001) {
+            val granted = grantResults.isNotEmpty() &&
+                    grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED
+            // Opcional: mostrar un toast/log
+            // Toast.makeText(this, if (granted) "Permiso concedido" else "Permiso denegado", Toast.LENGTH_SHORT).show()
+        }
+    }
 }
