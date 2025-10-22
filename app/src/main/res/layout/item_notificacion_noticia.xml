@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tarjeta para cada noticia/alerta -->
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="4dp"
+    android:layout_marginEnd="4dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="6dp">
+
+    <!-- Contenido vertical de la tarjeta -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@android:color/white">
+
+        <!-- Título de la noticia/alerta -->
+        <TextView
+            android:id="@+id/titulo_noticia"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Asalto a mano armada en Av. Pizarro, Trujillo Centro"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- Fila: Fuente + Fecha -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/fuente_noticia"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Fuente: Diario La República"
+                android:textSize="12sp"
+                android:textColor="#606060"
+                android:layout_marginEnd="16dp"/>
+
+            <TextView
+                android:id="@+id/fecha_noticia"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hace 5 min"
+                android:textSize="12sp"
+                android:textColor="#606060"/>
+        </LinearLayout>
+
+        <!-- Descripción/Resumen -->
+        <TextView
+            android:id="@+id/descripcion_noticia"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="La policía capturó a dos sujetos tras un intento de robo en un minimarket. Se recomienda a los vecinos tomar precauciones al caer la noche."
+            android:textSize="14sp"
+            android:textColor="#444444"
+            android:maxLines="3"
+            android:ellipsize="end"/>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
