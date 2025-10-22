@@ -147,6 +147,23 @@
 
                     </LinearLayout>
 
+                    <!-- Botón Generar QR -->
+                    <Button
+                        android:id="@+id/btn_generar_qr"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:text="Generar código QR"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#212121"
+                        android:backgroundTint="#4CAF50"
+                        app:icon="@drawable/ic_qr_code"
+                        app:iconGravity="start"
+                        app:iconPadding="8dp"
+                        app:iconTint="#FFFFFF"
+                        app:cornerRadius="12dp"
+                        android:layout_marginTop="8dp" />
+
                     <!-- Botón Cerrar Sesión -->
                     <Button
                         android:id="@+id/btn_cerrar_sesion"
@@ -157,8 +174,10 @@
                         android:textStyle="bold"
                         android:textColor="#FFFFFF"
                         android:backgroundTint="#D32F2F"
-                        android:drawableStart="@drawable/ic_logout"
-                        android:drawablePadding="8dp"
+                        app:icon="@drawable/ic_logout"
+                        app:iconGravity="start"
+                        app:iconPadding="8dp"
+                        app:iconTint="#FFFFFF"
                         app:cornerRadius="12dp"
                         android:layout_marginTop="8dp" />
 
