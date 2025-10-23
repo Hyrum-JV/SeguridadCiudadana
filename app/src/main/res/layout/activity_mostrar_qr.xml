@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#212121"
+    tools:context=".Perfil.MostrarQRActivity">
+
+    <!-- Título -->
+    <TextView
+        android:id="@+id/tv_titulo_qr"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Mi Código QR"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="32dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Contenedor principal -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_qr_contenedor"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginTop="32dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="#2E2E2E"
+        app:layout_constraintTop_toBottomOf="@id/tv_titulo_qr"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="32dp"
+            android:gravity="center_horizontal">
+
+            <!-- Nombre del usuario -->
+            <TextView
+                android:id="@+id/tv_nombre_usuario_qr"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nombre del Usuario"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="24dp"/>
+
+            <!-- Imagen del QR -->
+            <ImageView
+                android:id="@+id/iv_codigo_qr"
+                android:layout_width="250dp"
+                android:layout_height="250dp"
+                android:layout_marginBottom="24dp"
+                android:contentDescription="Código QR del usuario"/>
+
+            <!-- UID (opcional, pequeño debajo del QR) -->
+            <TextView
+                android:id="@+id/tv_uid_qr"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#BDBDBD"
+                android:textSize="14sp"
+                android:layout_marginBottom="16dp"
+                android:text="UID: "/>
+
+            <!-- Botón compartir -->
+            <Button
+                android:id="@+id/btn_compartir_qr"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Compartir mi código QR"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#212121"
+                android:backgroundTint="#4CAF50"
+                app:icon="@drawable/ic_share"
+                app:iconGravity="start"
+                app:iconPadding="8dp"
+                app:iconTint="#FFFFFF"
+                app:cornerRadius="12dp"
+                android:layout_marginBottom="12dp"/>
+
+            <!-- Botón volver -->
+            <Button
+                android:id="@+id/btn_volver_qr"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Volver"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#D32F2F"
+                app:icon="@drawable/ic_arrow_back"
+                app:iconGravity="start"
+                app:iconPadding="8dp"
+                app:iconTint="#FFFFFF"
+                app:cornerRadius="12dp"/>
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

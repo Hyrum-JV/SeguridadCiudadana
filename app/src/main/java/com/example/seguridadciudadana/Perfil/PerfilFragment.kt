@@ -31,6 +31,9 @@ class PerfilFragment : Fragment() {
     private lateinit var tvTelefonoPerfil: TextView
     private lateinit var btnCerrarSesion: Button
 
+    private lateinit var btnGenerarQr: Button
+
+
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
     private lateinit var googleSignInClient: GoogleSignInClient
@@ -133,6 +136,7 @@ class PerfilFragment : Fragment() {
     }
 
     private fun initViews(view: View) {
+        btnGenerarQr = view.findViewById(R.id.btn_generar_qr)
         ivAvatarPerfil = view.findViewById(R.id.iv_avatar_perfil)
         tvNombrePerfil = view.findViewById(R.id.tv_nombre_perfil)
         tvCorreoPerfil = view.findViewById(R.id.tv_correo_perfil)
@@ -151,6 +155,21 @@ class PerfilFragment : Fragment() {
     }
 
     private fun configurarClicksEdicion() {
+
+        btnGenerarQr.setOnClickListener {
+            val user = auth.currentUser
+            if (user != null) {
+                val intent = Intent(requireContext(), MostrarQRActivity::class.java)
+                intent.putExtra("uid", user.uid)
+                intent.putExtra("nombre", usuarioActual?.nombre ?: "Usuario")
+                intent.putExtra("correo", usuarioActual?.correo ?: user.email ?: "")
+                intent.putExtra("telefono", usuarioActual?.telefono ?: "")
+                startActivity(intent)
+            } else {
+                Toast.makeText(requireContext(), "No hay usuario autenticado", Toast.LENGTH_SHORT).show()
+            }
+        }
+
         tvNombrePerfil.setOnClickListener { mostrarDialogEditarNombre() }
         tvTelefonoPerfil.setOnClickListener { mostrarDialogEditarTelefono() }
 
@@ -319,6 +338,7 @@ class PerfilFragment : Fragment() {
             requireActivity().finish()
         }
     }
+
 }
 
 data class Usuario(
