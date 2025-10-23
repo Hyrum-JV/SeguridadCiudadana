@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.seguridadciudadana.R
 
 class InicioFragment : Fragment() {
@@ -30,29 +31,17 @@ class InicioFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         startPulseAnimation()
 
-        // --- Acción del botón: abrir cámara ---
+        // --- Acción del botón: abrir fragment Crear Reporte ---
         btnSOS.setOnClickListener {
-            val cameraIntent = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
-            // Verifica que haya cámara en el dispositivo
-            if (cameraIntent.resolveActivity(requireActivity().packageManager) != null) {
-                startActivityForResult(cameraIntent, REQUEST_IMAGE_CAPTURE)
-            }
+            val fragment = CrearReporte()
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.contenedor_fragmentos, fragment)
+                .addToBackStack(null)
+                .commit()
         }
     }
 
-    // Recibir el resultado de la cámara (por ahora solo muestra si la foto vuelve bien)
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
 
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
-            val imageBitmap = data?.extras?.get("data") // Miniatura de la foto
-            // ⚠️ Aquí más adelante guardaremos la foto o la enviaremos por WhatsApp
-        }
-    }
-
-    companion object {
-        private const val REQUEST_IMAGE_CAPTURE = 1
-    }
 
     private fun startPulseAnimation() {
         val pulseAnimation = android.view.animation.AnimationUtils.loadAnimation(requireContext(), R.anim.pulse_animation)
