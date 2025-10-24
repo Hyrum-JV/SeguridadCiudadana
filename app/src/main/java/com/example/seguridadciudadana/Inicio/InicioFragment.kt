@@ -41,8 +41,6 @@ class InicioFragment : Fragment() {
         }
     }
 
-
-
     private fun startPulseAnimation() {
         val pulseAnimation = android.view.animation.AnimationUtils.loadAnimation(requireContext(), R.anim.pulse_animation)
         btnSOS.startAnimation(pulseAnimation)
