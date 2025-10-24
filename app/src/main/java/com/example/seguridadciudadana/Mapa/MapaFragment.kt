@@ -108,14 +108,14 @@ class MapaFragment : Fragment(), OnMapReadyCallback {
                             MarkerOptions()
                                 .position(posicion)
                                 .title(categoria)
-                                .visible(true) // Puedes poner false si no quieres ícono
+                                .visible(true) // Muestra un icono encima del radio
                                 .icon(null) // Sin ícono personalizado
                         )
                     }
                 }
             }
             .addOnFailureListener {
-                // Puedes mostrar un Toast si quieres
+
             }
     }
 
