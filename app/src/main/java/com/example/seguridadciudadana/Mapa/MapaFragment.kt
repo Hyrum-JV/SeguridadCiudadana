@@ -16,9 +16,13 @@ import com.example.seguridadciudadana.R
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.GeoPoint
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import android.provider.Settings
+import com.google.android.gms.maps.model.CircleOptions
+import com.google.android.gms.maps.model.MarkerOptions
 
 class MapaFragment : Fragment(), OnMapReadyCallback {
 
@@ -46,6 +50,14 @@ class MapaFragment : Fragment(), OnMapReadyCallback {
 
         // Intentar activar la ubicación
         enableMyLocation()
+
+        // Cargar los reportes
+        cargarReportesEnMapa()
+
+        map.setOnMarkerClickListener { marker ->
+            marker.showInfoWindow() // ✅ Muestra el cuadro con la categoría
+            true // Evita que el mapa se mueva al presionar
+        }
     }
 
     private fun checkLocationEnabled() {
@@ -68,6 +80,45 @@ class MapaFragment : Fragment(), OnMapReadyCallback {
         super.onResume()
         checkLocationEnabled()
     }
+
+    // Cargar reportes en el mapa
+    private fun cargarReportesEnMapa() {
+        val db = FirebaseFirestore.getInstance()
+        db.collection("reportes")
+            .get()
+            .addOnSuccessListener { result ->
+                for (document in result) {
+                    val geo = document.getGeoPoint("ubicacion")
+                    val categoria = document.getString("categoria") ?: "Sin categoría"
+
+                    if (geo != null) {
+                        val posicion = LatLng(geo.latitude, geo.longitude)
+
+                        // Dibujar círculo verde
+                        map.addCircle(
+                            CircleOptions()
+                                .center(posicion)
+                                .radius(100.0) // Aumentado a 100 metros
+                                .strokeColor(0xFF4CAF50.toInt()) // verde fuerte
+                                .fillColor(0x554CAF50) // verde con transparencia
+                                .strokeWidth(3f)
+                        )
+                        // Marker invisible con título
+                        val marker = map.addMarker(
+                            MarkerOptions()
+                                .position(posicion)
+                                .title(categoria)
+                                .visible(true) // Puedes poner false si no quieres ícono
+                                .icon(null) // Sin ícono personalizado
+                        )
+                    }
+                }
+            }
+            .addOnFailureListener {
+                // Puedes mostrar un Toast si quieres
+            }
+    }
+
 
 
     private fun enableMyLocation() {
