@@ -6,7 +6,7 @@ import com.google.firebase.firestore.GeoPoint
 data class Reporte(
     val categoria: String,
     val descripcion: String?,
-    val ubicacion: GeoPoint?, // cuando lo integremos
-    val evidenciaUrl: String?, // cuando lo integremos
+    val ubicacion: GeoPoint,
+    val evidenciaLocalUri: String,
     val timestamp: Timestamp = Timestamp.now()
 )
