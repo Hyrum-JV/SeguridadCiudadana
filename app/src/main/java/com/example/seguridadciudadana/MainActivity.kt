@@ -1,7 +1,12 @@
 package com.example.seguridadciudadana
+import android.Manifest
+import android.content.Context
 import com.example.seguridadciudadana.Notificaciones.NotificacionesFragment
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
@@ -15,6 +20,7 @@ import com.example.seguridadciudadana.Configuraciones.ConfigFragment
 import com.example.seguridadciudadana.Inicio.InicioFragment
 import com.example.seguridadciudadana.Login.LoginActivity
 import com.example.seguridadciudadana.Mapa.MapaFragment
+import com.example.seguridadciudadana.Contactos.ContactosFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationView
@@ -23,6 +29,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.messaging.FirebaseMessaging
 import android.util.Log
+import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat
 import java.io.File
 
 class MainActivity : AppCompatActivity() {
@@ -46,6 +54,20 @@ class MainActivity : AppCompatActivity() {
             finish()
             return
         }
+            verificarPermisosUbicacion()
+
+            auth = FirebaseAuth.getInstance()
+
+            val currentUser = auth.currentUser
+
+            if (currentUser == null) {
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish()
+                return
+            }
+
+            // Configuración BottomNavigation
+            val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottom_navigation)
 
         // Configuración BottomNavigation
         val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottom_navigation)
@@ -66,6 +88,15 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_mapa -> {
                     loadFragment(MapaFragment())
                     true
+                    R.id.nav_contactos -> {
+                        val fragment = ContactosFragment()
+                        supportFragmentManager.beginTransaction()
+                            .replace(R.id.contenedor_fragmentos, fragment)
+                            .commit()
+                        true
+                    }
+
+                    else -> false
                 }
 
                 // Se mantiene solo nav_inicio y nav_mapa aquí
@@ -201,6 +232,42 @@ class MainActivity : AppCompatActivity() {
         handleNotificationExtras(intent)
     }
 
+        private fun verificarGPSActivo() {
+            val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+            val gpsActivo = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+
+            if (!gpsActivo) {
+                AlertDialog.Builder(this)
+                    .setTitle("Ubicación desactivada")
+                    .setMessage("Activa tu GPS para usar las funciones de ubicación.")
+                    .setPositiveButton("Activar") { _, _ ->
+                        startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                    }
+                    .setNegativeButton("Cancelar", null)
+                    .show()
+            }
+        }
+
+        private fun verificarPermisosUbicacion() {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                    1000
+                )
+            } else {
+                verificarGPSActivo()
+            }
+        }
+
+
+    private fun loadFragment(fragment: Fragment) {
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.contenedor_fragmentos, fragment)
+                .commit()
+
     private fun loadFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction()
             .replace(R.id.contenedor_fragmentos, fragment)
@@ -246,11 +313,12 @@ class MainActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 1001) {
+        if (requestCode == 1000) {
             val granted = grantResults.isNotEmpty() &&
-                    grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED
-            // Opcional: mostrar un toast/log
-            // Toast.makeText(this, if (granted) "Permiso concedido" else "Permiso denegado", Toast.LENGTH_SHORT).show()
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED
+            if (granted) {
+                verificarGPSActivo()
+            }
         }
     }
 
