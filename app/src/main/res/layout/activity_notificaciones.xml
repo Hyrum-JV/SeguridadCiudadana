@@ -15,7 +15,7 @@
         android:id="@+id/tvTituloNotificaciones"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Alertas de Seguridad Ciudadana en Trujillo"
+        android:text="Noticias de Trujillo"
         android:textSize="24sp"
         android:textStyle="bold"
         android:textColor="@color/design_default_color_primary_dark"
@@ -32,12 +32,32 @@
         android:layout_height="1dp"
         android:background="#D0D0D0"/>
 
-    <!-- Lista (RecyclerView) -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewNoticias"
+    <!-- Contenedor de Contenido (Para superponer lista y mensaje vacío) -->
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="8dp"
-        android:clipToPadding="false"
-        tools:listitem="@layout/item_notificacion_noticia"/>
+        android:background="@color/background_light_gray">
+
+        <!-- Lista (RecyclerView) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewNoticias"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="8dp"
+            android:clipToPadding="false"
+            tools:listitem="@layout/item_notificacion_noticia"/>
+
+        <!-- Mensaje de Lista Vacía -->
+        <TextView
+            android:id="@+id/emptyTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Cargando noticias..."
+            android:textSize="18sp"
+            android:textColor="@color/gray_700"
+            android:visibility="gone"
+            android:padding="32dp"/>
+
+    </FrameLayout>
 </LinearLayout>

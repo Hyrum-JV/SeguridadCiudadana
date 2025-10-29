@@ -1,75 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Tarjeta para cada noticia/alerta -->
-<androidx.cardview.widget.CardView
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="4dp"
-    android:layout_marginEnd="4dp"
-    android:layout_marginTop="8dp"
-    android:layout_marginBottom="8dp"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginTop="6dp"
+    android:layout_marginBottom="6dp"
     app:cardCornerRadius="12dp"
-    app:cardElevation="6dp">
+    app:cardElevation="2dp"
+    app:strokeColor="@color/blanco"
+    app:strokeWidth="1dp">
+    <!-- El fondo por defecto será blanco, lo que hace que la tarjeta resalte -->
 
-    <!-- Contenido vertical de la tarjeta -->
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:background="@android:color/white">
+        android:padding="12dp">
 
-        <!-- Título de la noticia/alerta -->
-        <TextView
-            android:id="@+id/titulo_noticia"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Asalto a mano armada en Av. Pizarro, Trujillo Centro"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="#333333"
-            android:maxLines="2"
-            android:ellipsize="end"
-            android:layout_marginBottom="8dp"/>
+        <!-- 1. IMAGEN DE NOTICIA (Ahora a la derecha y más compacta) -->
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="100dp"
+            android:layout_height="80dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="Imagen de la noticia"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:visibility="gone"
+            tools:src="@drawable/campo_perfil_background"
+            tools:visibility="visible"
+            />
 
-        <!-- Fila: Fuente + Fecha -->
+        <!-- 2. CONTENEDOR DE TEXTO (Ocupa el espacio restante a la izquierda) -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:id="@+id/textContainer"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
+            android:orientation="vertical"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/imageView"
+            app:layout_constraintBottom_toBottomOf="parent">
 
+            <!-- Título de la Noticia (Negrita y Color Destacado) -->
             <TextView
-                android:id="@+id/fuente_noticia"
-                android:layout_width="0dp"
+                android:id="@+id/tituloNoticia"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Fuente: Diario La República"
-                android:textSize="12sp"
-                android:textColor="#606060"
-                android:layout_marginEnd="16dp"/>
+                android:textSize="16sp"
+                android:textColor="@color/blanco"
+                android:textStyle="bold"
+                android:maxLines="2"
+                android:ellipsize="end"
+                tools:text="Trujillo: Capturan a juez de paz que exigía coimas para resolver conflictos de tierras" />
 
+            <!-- Descripción (Color más sutil, usando el nuevo gray_700) -->
             <TextView
-                android:id="@+id/fecha_noticia"
-                android:layout_width="wrap_content"
+                android:id="@+id/descripcionNoticia"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Hace 5 min"
+                android:layout_marginTop="4dp"
+                android:textSize="14sp"
+                android:textColor="@color/gray_700"
+                android:maxLines="2"
+                android:ellipsize="end"
+                tools:text="La Policía Nacional intervino al juez de paz mientras recibía 500 soles, dinero que solicitó para favorecer a uno de los implicados en una disputa." />
+
+            <!-- Fuente y Fecha (Texto pequeño y color neutro) -->
+            <TextView
+                android:id="@+id/fuenteFechaNoticia"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
                 android:textSize="12sp"
-                android:textColor="#606060"/>
+                android:textColor="@color/gris"
+                tools:text="Peru21 " />
         </LinearLayout>
 
-        <!-- Descripción/Resumen -->
-        <TextView
-            android:id="@+id/descripcion_noticia"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="La policía capturó a dos sujetos tras un intento de robo en un minimarket. Se recomienda a los vecinos tomar precauciones al caer la noche."
-            android:textSize="14sp"
-            android:textColor="#444444"
-            android:maxLines="3"
-            android:ellipsize="end"/>
-
-    </LinearLayout>
-
-</androidx.cardview.widget.CardView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>
