@@ -26,7 +26,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.messaging.FirebaseMessaging
 import android.util.Log
 import androidx.appcompat.app.AlertDialog
@@ -295,6 +294,7 @@ class MainActivity : AppCompatActivity() {
             "1.0.0"
         }
 
+
         MaterialAlertDialogBuilder(this)
             .setTitle("Acerca de la app")
             .setMessage(
@@ -307,6 +307,7 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton("OK", null)
             .show()
     }
+    
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
