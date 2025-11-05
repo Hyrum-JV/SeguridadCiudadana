@@ -1,106 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/card_contacto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="8dp"
     android:layout_marginBottom="8dp"
-    android:layout_marginStart="8dp"
-    android:layout_marginEnd="8dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="4dp"
     app:cardBackgroundColor="#2C2C2C"
-    android:clickable="true"
-    android:focusable="true"
-    android:foreground="?attr/selectableItemBackground">
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Avatar del contacto -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/card_avatar"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            app:cardCornerRadius="28dp"
-            app:cardElevation="0dp"
-            app:cardBackgroundColor="#4CAF50"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
-
-            <TextView
-                android:id="@+id/tv_inicial_contacto"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:text="A"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="#FFFFFF"
-                tools:text="A" />
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Información del contacto -->
-        <LinearLayout
-            android:id="@+id/layout_info"
-            android:layout_width="0dp"
+        <TextView
+            android:id="@+id/tv_nombre_contacto"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="8dp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@id/card_avatar"
-            app:layout_constraintEnd_toStartOf="@id/iv_opciones">
+            android:text="Nombre del contacto"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/tv_nombre_contacto"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="Nombre del Contacto"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                tools:text="Juan Pérez" />
+        <TextView
+            android:id="@+id/tv_correo_contacto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="correo@ejemplo.com"
+            android:textColor="#BDBDBD"
+            android:textSize="14sp" />
 
-            <TextView
-                android:id="@+id/tv_telefono_contacto"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="+51 999 999 999"
-                android:textSize="14sp"
-                android:textColor="#9E9E9E"
-                android:layout_marginTop="4dp"
-                android:maxLines="1"
-                android:ellipsize="end"
-                tools:text="+51 999 999 999" />
+        <TextView
+            android:id="@+id/tv_telefono_contacto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="999999999"
+            android:textColor="#BDBDBD"
+            android:textSize="14sp" />
 
-        </LinearLayout>
-
-        <!-- Botón de opciones -->
-        <ImageView
-            android:id="@+id/iv_opciones"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:padding="8dp"
-            android:src="@drawable/ic_more_vert"
-            android:contentDescription="Más opciones"
-            app:tint="#9E9E9E"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>
-
