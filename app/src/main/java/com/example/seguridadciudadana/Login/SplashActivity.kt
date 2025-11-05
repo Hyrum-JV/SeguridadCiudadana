@@ -6,17 +6,23 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.seguridadciudadana.Pin.CreatePinActivity
 import com.example.seguridadciudadana.Pin.UnlockPinActivity
 import com.example.seguridadciudadana.R
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class SplashActivity : AppCompatActivity() {
 
-    private val auth = FirebaseAuth.getInstance()
-    private val db = FirebaseFirestore.getInstance()
+    private lateinit var auth: FirebaseAuth
+    private lateinit var db: FirebaseFirestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
+
+        FirebaseApp.initializeApp(this) // <-- asegura que Firebase esté listo
+
+        auth = FirebaseAuth.getInstance()
+        db = FirebaseFirestore.getInstance()
 
         val user = auth.currentUser
 

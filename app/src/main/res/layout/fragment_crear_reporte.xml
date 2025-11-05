@@ -49,6 +49,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="Especifica la categoría"
+        app:hintTextColor="@color/blanco"
         android:visibility="gone"
         android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@id/spinnerCategoria"
@@ -59,7 +60,7 @@
             android:id="@+id/etCategoriaOtro"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#212121" />
+            android:textColor="@color/blanco" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Ubicación -->
@@ -89,13 +90,25 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvUbicacion" />
 
-    <!-- Descripción opcional (movida aquí) -->
+
+    <!-- Descripción opcional -->
+    <ImageView
+        android:id="@+id/imgPreview"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginStart="92dp"
+        android:background="#BDBDBD"
+        android:scaleType="centerCrop"
+        app:layout_constraintStart_toEndOf="@id/btnAdjuntar"
+        app:layout_constraintTop_toTopOf="@id/btnAdjuntar" />
+
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/descripcionLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="¿Quieres agregar más detalles? (opcional)"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="70dp"
+        app:hintTextColor="@color/blanco"
         app:layout_constraintTop_toBottomOf="@id/btnAdjuntar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -107,7 +120,7 @@
             android:inputType="textMultiLine"
             android:maxLines="6"
             android:minLines="3"
-            android:textColor="#212121" />
+            android:textColor="#FFFFFF" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Botón de envío -->

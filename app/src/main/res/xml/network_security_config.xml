@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Configuración para permitir Cleartext SÓLO para dominios específicos -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Reemplaza 'peru21.pe' si necesitas más dominios no seguros -->
+        <domain includeSubdomains="true">peru21.pe</domain>
+        <!-- ¡Advertencia! NO uses <base-config> con cleartextTrafficPermitted="true"
+             ya que habilitaría HTTP para TODA la aplicación, lo cual es inseguro. -->
+    </domain-config>
+
+    <!-- Usamos base-config para asegurar que el resto de dominios (por defecto)
+         solo usen HTTPS, que es la mejor práctica de seguridad. -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
