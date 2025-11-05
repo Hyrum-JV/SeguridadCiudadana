@@ -1,4 +1,5 @@
 package com.example.seguridadciudadana
+
 import android.Manifest
 import android.content.Context
 import com.example.seguridadciudadana.Notificaciones.NotificacionesFragment
@@ -48,6 +49,7 @@ class MainActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
 
         val currentUser = auth.currentUser
+
         if (currentUser == null) {
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
@@ -57,16 +59,12 @@ class MainActivity : AppCompatActivity() {
 
             auth = FirebaseAuth.getInstance()
 
-            val currentUser = auth.currentUser
 
             if (currentUser == null) {
                 startActivity(Intent(this, LoginActivity::class.java))
                 finish()
                 return
             }
-
-            // Configuración BottomNavigation
-            val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottom_navigation)
 
         // Configuración BottomNavigation
         val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottom_navigation)
@@ -81,25 +79,20 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.nav_inicio -> {
                     loadFragment(InicioFragment())
-                    true
+                    true // Return true to indicate the item was handled
                 }
 
                 R.id.nav_mapa -> {
                     loadFragment(MapaFragment())
-                    true
-                    R.id.nav_contactos -> {
-                        val fragment = ContactosFragment()
-                        supportFragmentManager.beginTransaction()
-                            .replace(R.id.contenedor_fragmentos, fragment)
-                            .commit()
-                        true
-                    }
-
-                    else -> false
+                    true // Return true
                 }
 
-                // Se mantiene solo nav_inicio y nav_mapa aquí
-                else -> false
+                R.id.nav_contactos -> {
+                    loadFragment(ContactosFragment()) // Use your loadFragment function for consistency
+                    true // Return true
+                }
+
+                else -> false // For any other case, return false
             }
         }
 
@@ -261,12 +254,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-
-    private fun loadFragment(fragment: Fragment) {
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.contenedor_fragmentos, fragment)
-                .commit()
-
     private fun loadFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction()
             .replace(R.id.contenedor_fragmentos, fragment)
@@ -293,7 +280,6 @@ class MainActivity : AppCompatActivity() {
         } catch (_: Exception) {
             "1.0.0"
         }
-
 
         MaterialAlertDialogBuilder(this)
             .setTitle("Acerca de la app")
