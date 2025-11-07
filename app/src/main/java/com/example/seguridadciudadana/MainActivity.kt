@@ -55,16 +55,16 @@ class MainActivity : AppCompatActivity() {
             finish()
             return
         }
-            verificarPermisosUbicacion()
+        verificarPermisosUbicacion()
 
-            auth = FirebaseAuth.getInstance()
+        auth = FirebaseAuth.getInstance()
 
 
-            if (currentUser == null) {
-                startActivity(Intent(this, LoginActivity::class.java))
-                finish()
-                return
-            }
+        if (currentUser == null) {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return
+        }
 
         // Configuración BottomNavigation
         val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottom_navigation)
@@ -92,6 +92,10 @@ class MainActivity : AppCompatActivity() {
                     true // Return true
                 }
 
+                R.id.nav_chats -> {
+                    loadFragment(ChatsFragment())
+                    true
+                }
                 else -> false // For any other case, return false
             }
         }
@@ -224,35 +228,35 @@ class MainActivity : AppCompatActivity() {
         handleNotificationExtras(intent)
     }
 
-        private fun verificarGPSActivo() {
-            val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-            val gpsActivo = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+    private fun verificarGPSActivo() {
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val gpsActivo = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
 
-            if (!gpsActivo) {
-                AlertDialog.Builder(this)
-                    .setTitle("Ubicación desactivada")
-                    .setMessage("Activa tu GPS para usar las funciones de ubicación.")
-                    .setPositiveButton("Activar") { _, _ ->
-                        startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-                    }
-                    .setNegativeButton("Cancelar", null)
-                    .show()
-            }
+        if (!gpsActivo) {
+            AlertDialog.Builder(this)
+                .setTitle("Ubicación desactivada")
+                .setMessage("Activa tu GPS para usar las funciones de ubicación.")
+                .setPositiveButton("Activar") { _, _ ->
+                    startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                }
+                .setNegativeButton("Cancelar", null)
+                .show()
         }
+    }
 
-        private fun verificarPermisosUbicacion() {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                    1000
-                )
-            } else {
-                verificarGPSActivo()
-            }
+    private fun verificarPermisosUbicacion() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                1000
+            )
+        } else {
+            verificarGPSActivo()
         }
+    }
 
     private fun loadFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction()
@@ -264,7 +268,9 @@ class MainActivity : AppCompatActivity() {
         when (fragment) {
             is com.example.seguridadciudadana.Configuraciones.ConfigFragment,
             is com.example.seguridadciudadana.Perfil.PerfilFragment,
-            is NotificacionesFragment -> { // Ocultar también para NotificacionesFragment
+            is NotificacionesFragment,
+                // NUEVO: Agrega ChatsFragment aquí para ocultar bottom nav
+            is ChatsFragment -> {
                 bottomNavigation.visibility = View.GONE
             }
             else -> {
@@ -293,7 +299,7 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton("OK", null)
             .show()
     }
-    
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
