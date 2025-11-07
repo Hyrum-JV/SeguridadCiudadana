@@ -12,5 +12,9 @@
         android:id="@+id/nav_contactos"
         android:icon="@drawable/ic_contacts"
         android:title="Contactos" />
+    <item
+        android:id="@+id/nav_chats"
+        android:icon="@drawable/ic_chat"
+    android:title="Chats Comunitarios" />
 
 </menu>
