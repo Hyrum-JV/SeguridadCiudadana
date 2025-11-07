@@ -34,8 +34,7 @@ class ConfigFragment : Fragment() {
 
     private lateinit var btnEditarMensaje: View
     private lateinit var filaDuracionVideo: View
-    private lateinit var btnEditarEnlaceGrupo: View
-    private lateinit var btnProbarEnlaceGrupo: View
+    private lateinit var btnAgregarGrupos: View
 
     private val opcionesDuracion = intArrayOf(5, 10, 15)
 
@@ -55,8 +54,7 @@ class ConfigFragment : Fragment() {
 
         btnEditarMensaje      = view.findViewById(R.id.btnEditarMensaje)
         filaDuracionVideo     = view.findViewById(R.id.filaDuracionVideo)
-        btnEditarEnlaceGrupo  = view.findViewById(R.id.btnEditarEnlaceGrupo)
-        btnProbarEnlaceGrupo  = view.findViewById(R.id.btnProbarEnlaceGrupo)
+        btnAgregarGrupos  = view.findViewById(R.id.btnAgregarGrupos)
 
         // Estado inicial
         val p = prefs()
@@ -67,7 +65,6 @@ class ConfigFragment : Fragment() {
 
         tvDuracionValor.text = "$duracion s  >"
         switchModoDiscreto.isChecked = discreto
-        btnProbarEnlaceGrupo.isEnabled = enlace.isNotBlank()
 
         // Listeners
         btnEditarMensaje.setOnClickListener { mostrarDialogoMensaje(mensaje) }
@@ -78,8 +75,7 @@ class ConfigFragment : Fragment() {
             toast(if (checked) "Modo discreto activado" else "Modo discreto desactivado")
         }
 
-        btnEditarEnlaceGrupo.setOnClickListener { mostrarDialogoEnlace() }
-        btnProbarEnlaceGrupo.setOnClickListener { probarEnlaceGrupo() }
+        btnAgregarGrupos.setOnClickListener { mostrarDialogoEnlace() }
     }
 
     // --- Diálogo para mensaje ---
@@ -139,7 +135,6 @@ class ConfigFragment : Fragment() {
                     toast("Ingresa un enlace válido de WhatsApp")
                 } else {
                     prefs().edit { putString(K_ENLACE, link) }
-                    btnProbarEnlaceGrupo.isEnabled = link.isNotBlank()
                     toast(if (link.isBlank()) "Enlace eliminado" else "Enlace guardado")
                 }
             }

@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#212121"
+    android:background="?attr/android:colorBackground"
     tools:context=".Perfil.PerfilFragment">
 
     <ScrollView
@@ -25,7 +25,7 @@
                 android:text="Mi Perfil"
                 android:textSize="28sp"
                 android:textStyle="bold"
-                android:textColor="#ffff"
+                android:textColor="?attr/colorOnBackground"
                 android:layout_marginTop="32dp"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -40,7 +40,7 @@
                 android:layout_marginTop="32dp"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="8dp"
-                app:cardBackgroundColor="#00FFFFFF"
+                app:cardBackgroundColor="?attr/colorSurface"
                 app:layout_constraintTop_toBottomOf="@id/tv_titulo_perfil"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
@@ -75,7 +75,7 @@
                             android:layout_height="wrap_content"
                             android:text="Nombre completo"
                             android:textSize="14sp"
-                            android:textColor="#757575"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:textStyle="bold"
                             android:layout_marginBottom="4dp" />
 
@@ -85,7 +85,8 @@
                             android:layout_height="wrap_content"
                             android:padding="16dp"
                             android:textSize="16sp"
-                            android:textColor="#FFFFFF"
+                            android:textColor="?attr/colorOnSurface"
+                            app:drawableTint="?attr/colorOnSurface"
                             android:drawableStart="@drawable/ic_person"
                             android:drawablePadding="12dp"
                             android:gravity="center_vertical" />
@@ -104,7 +105,7 @@
                             android:layout_height="wrap_content"
                             android:text="Correo electrónico"
                             android:textSize="14sp"
-                            android:textColor="#757575"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:textStyle="bold"
                             android:layout_marginBottom="4dp" />
 
@@ -114,7 +115,8 @@
                             android:layout_height="wrap_content"
                             android:padding="16dp"
                             android:textSize="16sp"
-                            android:textColor="#FFFFFF"
+                            android:textColor="?attr/colorOnSurface"
+                            app:drawableTint="?attr/colorOnSurface"
                             android:drawableStart="@drawable/ic_email_24"
                             android:drawablePadding="12dp"
                             android:gravity="center_vertical" />
@@ -133,7 +135,7 @@
                             android:layout_height="wrap_content"
                             android:text="Teléfono"
                             android:textSize="14sp"
-                            android:textColor="#757575"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:textStyle="bold"
                             android:layout_marginBottom="4dp" />
 
@@ -143,8 +145,9 @@
                             android:layout_height="wrap_content"
                             android:padding="16dp"
                             android:textSize="16sp"
-                            android:textColor="#FFFFFF"
+                            android:textColor="?attr/colorOnSurface"
                             android:drawableStart="@drawable/ic_phone_24"
+                            app:drawableTint="?attr/colorOnSurface"
                             android:drawablePadding="12dp"
                             android:gravity="center_vertical" />
 

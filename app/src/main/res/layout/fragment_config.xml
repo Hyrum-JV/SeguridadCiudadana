@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#2E2E2E"
+    android:background="?attr/android:colorBackground"
     tools:context=".Configuraciones.ConfigFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="24dp">
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="32dp">
 
         <!-- Título -->
         <TextView
@@ -22,21 +21,87 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="32dp"
-            android:layout_marginBottom="20dp"
-            android:text="AJUSTES"
-            android:textColor="#E0E0E0"
-            android:textSize="28sp"
+            android:layout_marginBottom="28dp"
+            android:text="Ajustes"
+            android:textColor="?attr/android:textColorPrimary"
+            android:textSize="32sp"
             android:textStyle="bold" />
 
-        <!-- Card: Mensaje de auxilio -->
+        <!-- ============================================== -->
+        <!-- SECCIÓN 1: REPORTE AUTOMÁTICO SOS -->
+        <!-- ============================================== -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ALERTA DE EMERGENCIA (SOS)"
+            android:textColor="?attr/colorOnSurface"
+            android:alpha="0.7"
+            android:textSize="13sp"
+            android:layout_marginBottom="8dp"
+            android:textStyle="bold" />
+
+        <!-- Card: Grupos de Confianza (NUEVO) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardGruposConfianza"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardBackgroundColor="?attr/colorSurface"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/tvGruposTitulo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Grupos de Confianza"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="10dp">
+
+                    <TextView
+                        android:id="@+id/tvGruposSeleccionados"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Ningún grupo seleccionado (Max 2)"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="15sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAgregarGrupos"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Agregar"
+                        app:rippleColor="?attr/colorPrimary" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Card: Mensaje de auxilio (EXISTENTE) -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardMensaje"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardBackgroundColor="#5A5A5A"
+            app:cardBackgroundColor="?attr/colorSurface"
             app:cardCornerRadius="14dp"
-            app:cardUseCompatPadding="true">
+            app:cardElevation="2dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -55,19 +120,18 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Mensaje de auxilio"
-                        android:textColor="#FFFFFF"
+                        android:text="Mensaje Personalizado"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnEditarMensaje"
-                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        style="@style/Widget.Material3.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Editar"
-                        android:textAllCaps="false"
-                        android:textColor="#E0E0E0" />
+                        app:rippleColor="?attr/colorPrimary" />
                 </LinearLayout>
 
                 <TextView
@@ -75,21 +139,22 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="Se enviará junto con tu ubicación y el video."
-                    android:textColor="#D0D0D0"
+                    android:text="Este mensaje se envía automáticamente con la ubicación y el video."
+                    android:textColor="?attr/colorOnSurface"
+                    android:alpha="0.7"
                     android:textSize="12sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Card: Evidencia (Duración de video) -->
+        <!-- Card: Evidencia (Duración de video) (EXISTENTE) -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardEvidencia"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardBackgroundColor="#5A5A5A"
+            app:cardBackgroundColor="?attr/colorSurface"
             app:cardCornerRadius="14dp"
-            app:cardUseCompatPadding="true">
+            app:cardElevation="2dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -101,8 +166,8 @@
                     android:id="@+id/tvEvidenciaTitulo"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Evidencia"
-                    android:textColor="#FFFFFF"
+                    android:text="Configuración de Evidencia"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -125,7 +190,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Duración del video"
-                        android:textColor="#FFFFFF"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="15sp" />
 
                     <TextView
@@ -133,21 +198,22 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="5 s  >"
-                        android:textColor="#E0E0E0"
+                        android:textColor="?attr/colorOnSurface"
+                        android:alpha="0.7"
                         android:textSize="14sp" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Card: Modo discreto -->
+        <!-- Card: Modo discreto (EXISTENTE) -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardDiscreto"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardBackgroundColor="#5A5A5A"
+            app:cardBackgroundColor="?attr/colorSurface"
             app:cardCornerRadius="14dp"
-            app:cardUseCompatPadding="true">
+            app:cardElevation="2dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -166,8 +232,8 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Modo discreto"
-                        android:textColor="#FFFFFF"
+                        android:text="Modo Discreto"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
@@ -183,76 +249,65 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="Oscurece la pantalla y silencia sonidos durante el SOS."
-                    android:textColor="#D0D0D0"
+                    android:text="Oscurece la pantalla y silencia sonidos al activar el SOS."
+                    android:textColor="?attr/colorOnSurface"
+                    android:alpha="0.7"
                     android:textSize="12sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Card: Grupo de confianza -->
+        <!-- ============================================== -->
+        <!-- SECCIÓN 2: OTRAS CONFIGURACIONES (OPCIONAL) -->
+        <!-- ============================================== -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="PREFERENCIAS DE LA APP"
+            android:textColor="?attr/colorOnSurface"
+            android:alpha="0.7"
+            android:textSize="13sp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            android:textStyle="bold" />
+
+        <!-- Card: Tema Oscuro/Claro (Opcional) -->
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardGrupo"
+            android:id="@+id/cardTema"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardBackgroundColor="#5A5A5A"
+            app:cardBackgroundColor="?attr/colorSurface"
             app:cardCornerRadius="14dp"
-            app:cardUseCompatPadding="true">
+            app:cardElevation="2dp">
 
             <LinearLayout
+                android:id="@+id/filaCambiarTema"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
 
                 <TextView
-                    android:id="@+id/tvGrupoTitulo"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Grupo de confianza"
-                    android:textColor="#FFFFFF"
+                    android:layout_weight="1"
+                    android:text="Cambiar Tema (Claro/Oscuro)"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/tvGrupoAyuda"
-                    android:layout_width="match_parent"
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchClaroOscuro"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="Crea un grupo de WhatsApp con tus contactos de emergencia."
-                    android:textColor="#D0D0D0"
-                    android:textSize="12sp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnEditarEnlaceGrupo"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Editar enlace"
-                        android:textAllCaps="false" />
-
-                    <Space
-                        android:layout_width="12dp"
-                        android:layout_height="wrap_content" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnProbarEnlaceGrupo"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Probar enlace"
-                        android:textAllCaps="false" />
-                </LinearLayout>
+                    android:checked="false" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-
     </LinearLayout>
-</ScrollView>
+</androidx.core.widget.NestedScrollView>

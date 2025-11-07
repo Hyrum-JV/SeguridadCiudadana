@@ -1,14 +1,8 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <style name="Base.Theme.SeguridadCiudadana" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Colores personalizados -->
-        <item name="colorPrimary">@color/azul_oscuro</item>
-        <item name="colorOnPrimary">@color/blanco</item>
-        <item name="colorSecondary">@color/azul_claro</item>
-        <item name="colorOnSecondary">@color/blanco</item>
-
-        <!-- Barras del sistema -->
-        <item name="android:statusBarColor">@color/azul_oscuro</item>
+        <item name="colorPrimary">@color/azul_oscuro</item>         <item name="colorOnPrimary">@color/blanco</item>            <item name="colorSecondary">@color/azul_claro</item>        <item name="colorOnSecondary">@color/blanco</item>          <item name="android:colorBackground">@color/background_light_gray</item> <item name="colorOnBackground">@color/negro</item>          <item name="colorSurface">@color/blanco</item>              <item name="colorOnSurface">@color/negro</item>             <item name="android:textColorPrimary">@color/negro</item>
+        <item name="android:textColorSecondary">@color/gray_700</item> <item name="android:statusBarColor">@color/azul_oscuro</item>
         <item name="android:navigationBarColor">@color/azul_oscuro</item>
     </style>
 

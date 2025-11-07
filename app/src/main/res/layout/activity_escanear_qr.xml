@@ -5,7 +5,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:padding="24dp">
+    android:padding="24dp"
+    android:background="?attr/android:colorBackground">
 
     <TextView
         android:layout_width="wrap_content"
@@ -13,7 +14,8 @@
         android:text="Escanear código QR"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:layout_marginBottom="32dp"/>
+        android:layout_marginBottom="32dp"
+        android:textColor="?attr/colorOnBackground"/>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnEscanearCamara"
@@ -35,7 +37,10 @@
         android:padding="16dp"
         app:icon="@android:drawable/ic_menu_gallery"
         app:iconGravity="textStart"
-        style="@style/Widget.Material3.Button.OutlinedButton"/>
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:textColor="?attr/colorOnBackground"
+        app:iconTint="?attr/colorOnBackground"
+        app:strokeColor="?attr/colorOnBackground"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -44,6 +49,7 @@
         android:textSize="14sp"
         android:textAlignment="center"
         android:layout_marginTop="24dp"
-        android:alpha="0.7"/>
+        android:alpha="0.7"
+        android:textColor="?attr/colorOnBackground"/>
 
 </LinearLayout>

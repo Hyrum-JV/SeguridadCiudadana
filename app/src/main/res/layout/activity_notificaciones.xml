@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F5F5"
+    android:background="?attr/android:colorBackground"
     tools:context=".Notificaciones.NotificacionesFragment">
 
     <!-- Encabezado -->
@@ -18,25 +18,25 @@
         android:text="Noticias de Trujillo"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="@color/design_default_color_primary_dark"
+        android:textColor="?attr/colorOnSurface"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingTop="24dp"
         android:paddingBottom="12dp"
-        android:background="@android:color/white"
+        android:background="?attr/colorSurface"
         android:elevation="4dp"/>
 
     <!-- Separador -->
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#D0D0D0"/>
+        android:background="?attr/colorSurfaceVariant"/>
 
     <!-- Contenedor de Contenido (Para superponer lista y mensaje vacío) -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/background_light_gray">
+        android:background="?attr/android:colorBackground">
 
         <!-- Lista (RecyclerView) -->
         <androidx.recyclerview.widget.RecyclerView
@@ -55,7 +55,7 @@
             android:layout_gravity="center"
             android:text="Cargando noticias..."
             android:textSize="18sp"
-            android:textColor="@color/gray_700"
+            android:textColor="?attr/colorOnBackground"
             android:visibility="gone"
             android:padding="32dp"/>
 
