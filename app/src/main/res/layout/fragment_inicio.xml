@@ -4,7 +4,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#212121"
+    android:background="?attr/android:colorBackground"
     tools:context=".MainActivity">
 
     <!-- Botón principal SOS -->
@@ -31,7 +31,7 @@
         android:textStyle="bold"
         android:gravity="center"
         android:text="Toca para mandar SOS"
-        android:textColor="@android:color/white"
+        android:textColor="?attr/colorOnBackground"
         android:textSize="26sp" />
 
 </FrameLayout>

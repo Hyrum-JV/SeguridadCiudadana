@@ -1,8 +1,6 @@
 package com.example.seguridadciudadana
 
 
-// ... (tus imports no cambian)
-
 import android.Manifest
 import android.content.Context
 import com.example.seguridadciudadana.Notificaciones.NotificacionesFragment
@@ -35,7 +33,7 @@ import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import java.io.File
-
+import com.google.firebase.Timestamp
 
 class MainActivity : AppCompatActivity() {
 
@@ -51,73 +49,45 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         auth = FirebaseAuth.getInstance()
-
-        // --- CORRECCIÓN 1: Se elimina el bloque duplicado de verificación de usuario ---
         val currentUser = auth.currentUser
 
+        // 1. CHEQUEO DE AUTENTICACIÓN (ÚNICO)
         if (currentUser == null) {
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
             return
         }
 
-
         verificarPermisosUbicacion()
-
-        // --- CORRECCIÓN 2: Se elimina la inicialización duplicada de bottomNavigation ---
-
-        verificarPermisosUbicacion()
-
-        auth = FirebaseAuth.getInstance()
-
-
-        if (currentUser == null) {
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
-            return
-        }
 
         // Configuración BottomNavigation
         val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottom_navigation)
 
         if (savedInstanceState == null) {
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.contenedor_fragmentos, InicioFragment())
-                .commit()
+            // Cargar el fragmento inicial (Inicio) solo si la actividad se crea por primera vez
+            loadFragment(InicioFragment())
         }
 
-        // --- CORRECCIÓN 3: Se arregla la lógica del 'when' ---
+        // 2. LÓGICA CORREGIDA del 'when' en setOnItemSelectedListener
         bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_inicio -> {
                     loadFragment(InicioFragment())
-                    true // Return true to indicate the item was handled
+                    true
                 }
                 R.id.nav_mapa -> {
                     loadFragment(MapaFragment())
-
                     true
                 }
-                // 'nav_contactos' ahora está en el nivel correcto
                 R.id.nav_contactos -> {
                     loadFragment(ContactosFragment())
                     true
                 }
-                else -> false
-
-                    true // Return true
-                }
-
-                R.id.nav_contactos -> {
-                    loadFragment(ContactosFragment()) // Use your loadFragment function for consistency
-                    true // Return true
-                }
-
                 R.id.nav_chats -> {
                     loadFragment(ChatsFragment())
                     true
                 }
-                else -> false // For any other case, return false
+                else -> false // Si se selecciona un item no manejado, no hacer nada
             }
         }
 
@@ -255,35 +225,6 @@ class MainActivity : AppCompatActivity() {
     private fun verificarGPSActivo() {
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val gpsActivo = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-
-        if (!gpsActivo) {
-            AlertDialog.Builder(this)
-                .setTitle("Ubicación desactivada")
-                .setMessage("Activa tu GPS para usar las funciones de ubicación.")
-                .setPositiveButton("Activar") { _, _ ->
-                    startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-                }
-                .setNegativeButton("Cancelar", null)
-                .show()
-        }
-    }
-
-    private fun verificarPermisosUbicacion() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                1000
-            )
-        } else {
-            verificarGPSActivo()
-        }
-    }
-
-    // --- CORRECCIÓN 4: Se elimina la función 'loadFragment' duplicada ---
-    // Nos quedamos solo con la versión que maneja la visibilidad del BottomNavigationView
 
         if (!gpsActivo) {
             AlertDialog.Builder(this)
