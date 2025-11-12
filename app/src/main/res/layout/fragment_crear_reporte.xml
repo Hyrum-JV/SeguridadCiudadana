@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="30dp"
@@ -32,10 +33,9 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvTitulo" />
 
-    <!-- Campo adicional si selecciona "Otro" -->
-
+    <!-- Spinner -->
     <Spinner
-        android:id="@+id/spinnerCategoria"
+        android:id="@+id/spinner_categoria"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
@@ -44,31 +44,29 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvTipoReporte" />
 
+    <!-- Campo adicional si selecciona "Otro" -->
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/layoutCategoriaOtro"
+        android:id="@+id/layout_categoria_otro"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="Especifica la categoría"
         app:hintTextColor="@color/blanco"
         android:visibility="gone"
         android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@id/spinnerCategoria"
+        app:layout_constraintTop_toBottomOf="@id/spinner_categoria"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etCategoriaOtro"
+            android:id="@+id/et_categoria_otro"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/blanco" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Ubicación -->
-
-    <!-- Adjuntar evidencia -->
-
     <TextView
-        android:id="@+id/tvUbicacion"
+        android:id="@+id/tv_ubicacion"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="28dp"
@@ -77,10 +75,11 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layoutCategoriaOtro" />
+        app:layout_constraintTop_toBottomOf="@id/layout_categoria_otro" />
 
+    <!-- Adjuntar evidencia -->
     <Button
-        android:id="@+id/btnAdjuntar"
+        android:id="@+id/btn_adjuntar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
@@ -88,20 +87,22 @@
         android:text="Subir evidencia"
         android:textColor="#212121"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvUbicacion" />
+        app:layout_constraintTop_toBottomOf="@id/tv_ubicacion" />
 
-
-    <!-- Descripción opcional -->
+    <!-- Preview de imagen -->
     <ImageView
-        android:id="@+id/imgPreview"
+        android:id="@+id/img_preview"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_marginStart="92dp"
         android:background="#BDBDBD"
         android:scaleType="centerCrop"
-        app:layout_constraintStart_toEndOf="@id/btnAdjuntar"
-        app:layout_constraintTop_toTopOf="@id/btnAdjuntar" />
+        android:visibility="gone"
+        app:layout_constraintStart_toEndOf="@id/btn_adjuntar"
+        app:layout_constraintTop_toTopOf="@id/btn_adjuntar"
+        tools:src="@android:drawable/ic_launcher" />
 
+    <!-- Descripción opcional -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/descripcionLayout"
         android:layout_width="0dp"
@@ -109,23 +110,24 @@
         android:hint="¿Quieres agregar más detalles? (opcional)"
         android:layout_marginTop="70dp"
         app:hintTextColor="@color/blanco"
-        app:layout_constraintTop_toBottomOf="@id/btnAdjuntar"
+        app:layout_constraintTop_toBottomOf="@id/btn_adjuntar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etDescripcion"
+            android:id="@+id/et_descripcion"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textMultiLine"
             android:maxLines="6"
             android:minLines="3"
             android:textColor="#FFFFFF" />
+
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Botón de envío -->
     <Button
-        android:id="@+id/btnEnviarReporte"
+        android:id="@+id/btn_enviar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"

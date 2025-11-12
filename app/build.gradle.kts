@@ -39,7 +39,6 @@ android {
         jvmTarget = "11"
     }
 }
-
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -62,17 +61,18 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    // ⚠️ CAMBIA ESTA LÍNEA - Usa la versión directa en lugar de libs
+    implementation("com.google.firebase:firebase-storage-ktx:21.0.1")
 
     //DEPENDENCIAS AÑADIDAS PARA NOTIFICACIONES Y RED
-    // 1. Firebase Cloud Messaging (FCM) - ESENCIAL PARA NOTIFICACIONES PUSH
     implementation(libs.firebase.messaging)
 
-    // 2. Retrofit - Cliente HTTP para NewsAPI
+    // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    // Conversor de JSON (usaremos Gson)
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
-    // 3. RecyclerView - Ya que lo usamos en el layout, asegurar la dependencia
+    // RecyclerView
     implementation("androidx.recyclerview:recyclerview:1.3.2")
 
     // Autenticación con Google
@@ -81,10 +81,12 @@ dependencies {
     // Glide (para imágenes)
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
-    // NECESARIO para esta solución:
     implementation("com.github.bumptech.glide:okhttp3-integration:4.16.0")
 
     //QR
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     implementation("com.google.zxing:core:3.5.3")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+
+    implementation("com.google.android.exoplayer:exoplayer:2.18.1")
 }

@@ -6,17 +6,61 @@
     android:layout_height="match_parent"
     android:background="#212121">
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar_chat"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="#4CAF50"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:titleTextColor="#FFFFFF" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_mensajes"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginBottom="8dp"
         android:padding="8dp"
-        app:layout_constraintBottom_toTopOf="@id/layout_enviar"
+        app:layout_constraintBottom_toTopOf="@id/layout_admin"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar_chat"
         tools:listitem="@layout/item_mensaje" />
+
+    <LinearLayout
+        android:id="@+id/layout_admin"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/layout_enviar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageButton
+            android:id="@+id/btn_agregar_miembro"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/circle_button"
+            android:contentDescription="Agregar miembro"
+            android:src="@android:drawable/ic_input_add"
+            app:tint="#FFFFFF" />
+
+        <ImageButton
+            android:id="@+id/btn_eliminar_miembro"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/circle_button"
+            android:contentDescription="Eliminar miembro"
+            android:src="@android:drawable/ic_menu_delete"
+            app:tint="#FFFFFF" />
+
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/layout_enviar"
@@ -40,6 +84,16 @@
             android:padding="12dp"
             android:textColor="#FFFFFF"
             android:textColorHint="#757575" />
+
+        <ImageButton
+            android:id="@+id/btn_enviar_imagen"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/circle_button"
+            android:contentDescription="Enviar imagen"
+            android:src="@android:drawable/ic_menu_gallery"
+            app:tint="#FFFFFF" />
 
         <ImageButton
             android:id="@+id/btn_enviar"
