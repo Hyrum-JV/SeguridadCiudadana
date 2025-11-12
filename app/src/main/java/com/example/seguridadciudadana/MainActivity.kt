@@ -1,5 +1,8 @@
 package com.example.seguridadciudadana
 
+
+// ... (tus imports no cambian)
+
 import android.Manifest
 import android.content.Context
 import com.example.seguridadciudadana.Notificaciones.NotificacionesFragment
@@ -33,6 +36,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import java.io.File
 
+
 class MainActivity : AppCompatActivity() {
 
     // Firebase
@@ -48,6 +52,7 @@ class MainActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
 
+        // --- CORRECCIÓN 1: Se elimina el bloque duplicado de verificación de usuario ---
         val currentUser = auth.currentUser
 
         if (currentUser == null) {
@@ -55,6 +60,12 @@ class MainActivity : AppCompatActivity() {
             finish()
             return
         }
+
+
+        verificarPermisosUbicacion()
+
+        // --- CORRECCIÓN 2: Se elimina la inicialización duplicada de bottomNavigation ---
+
         verificarPermisosUbicacion()
 
         auth = FirebaseAuth.getInstance()
@@ -75,15 +86,25 @@ class MainActivity : AppCompatActivity() {
                 .commit()
         }
 
+        // --- CORRECCIÓN 3: Se arregla la lógica del 'when' ---
         bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_inicio -> {
                     loadFragment(InicioFragment())
                     true // Return true to indicate the item was handled
                 }
-
                 R.id.nav_mapa -> {
                     loadFragment(MapaFragment())
+
+                    true
+                }
+                // 'nav_contactos' ahora está en el nivel correcto
+                R.id.nav_contactos -> {
+                    loadFragment(ContactosFragment())
+                    true
+                }
+                else -> false
+
                     true // Return true
                 }
 
@@ -99,6 +120,9 @@ class MainActivity : AppCompatActivity() {
                 else -> false // For any other case, return false
             }
         }
+
+        // --- El resto de tu código de Configuración de Navigation Drawer, Perfil, etc. ---
+        // (Este código parece estar bien y no necesita cambios)
 
         // Configuración Navigation Drawer
         drawerLayout = findViewById(R.id.drawer_layout)
@@ -129,7 +153,6 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_notificaciones -> {
                     loadFragment(NotificacionesFragment())
                 }
-
                 R.id.nav_acerca -> {
                     mostrarDialogoAcerca()
                 }
@@ -151,47 +174,48 @@ class MainActivity : AppCompatActivity() {
             tvNombre.text = "Invitado"
             tvCorreo.text = "No autenticado"
             imgUser.setImageResource(R.drawable.ic_person_placeholder)
-            return
+            // No es necesario 'return' aquí si el chequeo principal ya se hizo arriba
+        } else {
+            val db = FirebaseFirestore.getInstance()
+            db.collection("usuarios").document(user.uid).get()
+                .addOnSuccessListener { document ->
+                    val nombre = document.getString("nombre") ?: "Usuario"
+                    val correo = document.getString("correo") ?: user.email ?: "Sin correo"
+                    val fotoUrl = document.getString("fotoPerfil")
+
+                    tvNombre.text = nombre
+                    tvCorreo.text = correo
+
+                    val userId = user.uid
+                    val localFile = File(filesDir, "${userId}_perfil.jpg")
+
+                    if (localFile.exists()) {
+                        // 🖼️ Cargar la imagen localmente guardada
+                        Glide.with(this)
+                            .load(localFile)
+                            .circleCrop()
+                            .skipMemoryCache(true)
+                            .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.NONE)
+                            .placeholder(R.drawable.ic_person_placeholder)
+                            .into(imgUser)
+                    } else if (!fotoUrl.isNullOrEmpty()) {
+                        // 🔗 Cargar imagen desde Firestore (si existiera)
+                        Glide.with(this)
+                            .load(fotoUrl)
+                            .circleCrop()
+                            .placeholder(R.drawable.ic_person_placeholder)
+                            .error(R.drawable.ic_person_placeholder)
+                            .into(imgUser)
+                    } else {
+                        imgUser.setImageResource(R.drawable.ic_person_placeholder)
+                    }
+                }
+                .addOnFailureListener {
+                    tvNombre.text = "Error al cargar"
+                    tvCorreo.text = user.email ?: "Sin correo"
+                }
         }
 
-        val db = FirebaseFirestore.getInstance()
-        db.collection("usuarios").document(user.uid).get()
-            .addOnSuccessListener { document ->
-                val nombre = document.getString("nombre") ?: "Usuario"
-                val correo = document.getString("correo") ?: user.email ?: "Sin correo"
-                val fotoUrl = document.getString("fotoPerfil")
-
-                tvNombre.text = nombre
-                tvCorreo.text = correo
-
-                val userId = user.uid
-                val localFile = File(filesDir, "${userId}_perfil.jpg")
-
-                if (localFile.exists()) {
-                    // 🖼️ Cargar la imagen localmente guardada
-                    Glide.with(this)
-                        .load(localFile)
-                        .circleCrop()
-                        .skipMemoryCache(true)
-                        .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.NONE)
-                        .placeholder(R.drawable.ic_person_placeholder)
-                        .into(imgUser)
-                } else if (!fotoUrl.isNullOrEmpty()) {
-                    // 🔗 Cargar imagen desde Firestore (si existiera)
-                    Glide.with(this)
-                        .load(fotoUrl)
-                        .circleCrop()
-                        .placeholder(R.drawable.ic_person_placeholder)
-                        .error(R.drawable.ic_person_placeholder)
-                        .into(imgUser)
-                } else {
-                    imgUser.setImageResource(R.drawable.ic_person_placeholder)
-                }
-            }
-            .addOnFailureListener {
-                tvNombre.text = "Error al cargar"
-                tvCorreo.text = user.email ?: "Sin correo"
-            }
 
         val cardPerfil = headerView.findViewById<androidx.cardview.widget.CardView>(R.id.card_user)
 
@@ -231,6 +255,35 @@ class MainActivity : AppCompatActivity() {
     private fun verificarGPSActivo() {
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val gpsActivo = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+
+        if (!gpsActivo) {
+            AlertDialog.Builder(this)
+                .setTitle("Ubicación desactivada")
+                .setMessage("Activa tu GPS para usar las funciones de ubicación.")
+                .setPositiveButton("Activar") { _, _ ->
+                    startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                }
+                .setNegativeButton("Cancelar", null)
+                .show()
+        }
+    }
+
+    private fun verificarPermisosUbicacion() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                1000
+            )
+        } else {
+            verificarGPSActivo()
+        }
+    }
+
+    // --- CORRECCIÓN 4: Se elimina la función 'loadFragment' duplicada ---
+    // Nos quedamos solo con la versión que maneja la visibilidad del BottomNavigationView
 
         if (!gpsActivo) {
             AlertDialog.Builder(this)
