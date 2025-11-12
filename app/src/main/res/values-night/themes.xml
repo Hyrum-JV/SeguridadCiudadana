@@ -6,7 +6,6 @@
         <item name="colorSecondary">@color/darkSecondary</item>
         <item name="colorOnSecondary">@color/white</item>
 
-        <item name="android:statusBarColor">@color/darkPrimary</item>
     </style>
 
     <style name="Theme.SeguridadCiudadana" parent="Base.Theme.SeguridadCiudadana" />

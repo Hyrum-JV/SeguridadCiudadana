@@ -1,6 +1,8 @@
 package com.example.seguridadciudadana
 
+
 // ... (tus imports no cambian)
+
 import android.Manifest
 import android.content.Context
 import com.example.seguridadciudadana.Notificaciones.NotificacionesFragment
@@ -28,7 +30,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.messaging.FirebaseMessaging
 import android.util.Log
 import androidx.appcompat.app.AlertDialog
@@ -53,15 +54,30 @@ class MainActivity : AppCompatActivity() {
 
         // --- CORRECCIÓN 1: Se elimina el bloque duplicado de verificación de usuario ---
         val currentUser = auth.currentUser
+
         if (currentUser == null) {
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
             return
         }
 
+
         verificarPermisosUbicacion()
 
         // --- CORRECCIÓN 2: Se elimina la inicialización duplicada de bottomNavigation ---
+
+        verificarPermisosUbicacion()
+
+        auth = FirebaseAuth.getInstance()
+
+
+        if (currentUser == null) {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return
+        }
+
+        // Configuración BottomNavigation
         val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottom_navigation)
 
         if (savedInstanceState == null) {
@@ -75,10 +91,11 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.nav_inicio -> {
                     loadFragment(InicioFragment())
-                    true
+                    true // Return true to indicate the item was handled
                 }
                 R.id.nav_mapa -> {
                     loadFragment(MapaFragment())
+
                     true
                 }
                 // 'nav_contactos' ahora está en el nivel correcto
@@ -87,6 +104,20 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 else -> false
+
+                    true // Return true
+                }
+
+                R.id.nav_contactos -> {
+                    loadFragment(ContactosFragment()) // Use your loadFragment function for consistency
+                    true // Return true
+                }
+
+                R.id.nav_chats -> {
+                    loadFragment(ChatsFragment())
+                    true
+                }
+                else -> false // For any other case, return false
             }
         }
 
@@ -253,6 +284,33 @@ class MainActivity : AppCompatActivity() {
 
     // --- CORRECCIÓN 4: Se elimina la función 'loadFragment' duplicada ---
     // Nos quedamos solo con la versión que maneja la visibilidad del BottomNavigationView
+
+        if (!gpsActivo) {
+            AlertDialog.Builder(this)
+                .setTitle("Ubicación desactivada")
+                .setMessage("Activa tu GPS para usar las funciones de ubicación.")
+                .setPositiveButton("Activar") { _, _ ->
+                    startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                }
+                .setNegativeButton("Cancelar", null)
+                .show()
+        }
+    }
+
+    private fun verificarPermisosUbicacion() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                1000
+            )
+        } else {
+            verificarGPSActivo()
+        }
+    }
+
     private fun loadFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction()
             .replace(R.id.contenedor_fragmentos, fragment)
@@ -263,7 +321,9 @@ class MainActivity : AppCompatActivity() {
         when (fragment) {
             is com.example.seguridadciudadana.Configuraciones.ConfigFragment,
             is com.example.seguridadciudadana.Perfil.PerfilFragment,
-            is NotificacionesFragment -> { // Ocultar también para NotificacionesFragment
+            is NotificacionesFragment,
+                // NUEVO: Agrega ChatsFragment aquí para ocultar bottom nav
+            is ChatsFragment -> {
                 bottomNavigation.visibility = View.GONE
             }
             else -> {
