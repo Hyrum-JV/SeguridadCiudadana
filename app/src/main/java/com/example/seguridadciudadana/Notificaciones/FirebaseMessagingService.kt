@@ -6,6 +6,7 @@
     import android.content.Context
     import android.content.Intent
     import android.os.Build
+    import android.util.Log
     import androidx.core.app.NotificationCompat
     import androidx.core.app.NotificationManagerCompat
     import com.example.seguridadciudadana.MainActivity
@@ -14,10 +15,12 @@
     import com.google.firebase.messaging.RemoteMessage
     import com.google.firebase.firestore.FirebaseFirestore
     import com.google.firebase.Timestamp
+    import com.google.firebase.auth.FirebaseAuth
 
     class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         private val db by lazy { FirebaseFirestore.getInstance() }
+        private val auth by lazy { FirebaseAuth.getInstance() }
 
         override fun onCreate() {
             super.onCreate()
@@ -80,7 +83,38 @@
         }
 
         override fun onNewToken(token: String) {
-            // Envía tu token al backend si haces envíos directos por token
+            super.onNewToken(token)
+            Log.d("FCMToken", "Nuevo Token: $token")
+
+            // ✅ Llamar a la función para guardar el token en Firestore
+            sendRegistrationToServer(token)
+        }
+
+        /**
+         * Envía el nuevo token FCM a Firestore para el usuario actual.
+         */
+        private fun sendRegistrationToServer(token: String) {
+            val currentUser = auth.currentUser
+
+            if (currentUser == null) {
+                Log.w("FCMService", "Usuario no autenticado. No se puede guardar el token.")
+                return
+            }
+
+            val tokenData = hashMapOf(
+                "fcmToken" to token
+            )
+
+            // Usamos .set con merge para asegurarnos de que el documento exista o se actualice,
+            // sin sobrescribir otros datos del usuario.
+            db.collection("usuarios").document(currentUser.uid)
+                .set(tokenData as Map<String, Any>, com.google.firebase.firestore.SetOptions.merge())
+                .addOnSuccessListener {
+                    Log.i("FCMService", "✅ Token FCM actualizado en Firestore para ${currentUser.uid}")
+                }
+                .addOnFailureListener { e ->
+                    Log.e("FCMService", "❌ Error al actualizar token FCM en Firestore", e)
+                }
         }
 
         private fun crearCanalNotificaciones() {
@@ -97,4 +131,6 @@
                     .createNotificationChannel(channel)
             }
         }
+
+
     }

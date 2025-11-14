@@ -1,5 +1,6 @@
 package com.example.seguridadciudadana.Inicio
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,7 +13,7 @@ import com.bumptech.glide.Glide
 import com.google.firebase.Timestamp
 import java.util.concurrent.TimeUnit
 
-class ReporteAdapter(private val reportes: List<ReporteZona>) :
+class ReporteAdapter(private val reportes: List<ReporteZona>, private val clickListener: OnReporteClickListener) :
     RecyclerView.Adapter<ReporteAdapter.ReporteViewHolder>() {
 
     class ReporteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -57,6 +58,15 @@ class ReporteAdapter(private val reportes: List<ReporteZona>) :
             holder.tvDescripcion.visibility = View.GONE
         }
 
+        holder.itemView.setOnClickListener {
+            val geoPoint = reporte.ubicacion
+            if (geoPoint != null) {
+                clickListener.onReporteClicked(geoPoint.latitude, geoPoint.longitude)
+            } else {
+                Log.w("ReporteAdapter", "Intento de click en reporte sin coordenadas.")
+            }
+        }
+
         // 4. Hora
         holder.tvHoraReporte.text = formatTimeAgo(reporte.timestamp)
 
@@ -71,6 +81,10 @@ class ReporteAdapter(private val reportes: List<ReporteZona>) :
         } else {
             holder.layoutImagen.visibility = View.GONE
         }
+    }
+
+    interface OnReporteClickListener {
+        fun onReporteClicked(lat: Double, lon: Double)
     }
 
     override fun getItemCount() = reportes.size

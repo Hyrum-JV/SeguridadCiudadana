@@ -1,187 +1,191 @@
 package com.example.seguridadciudadana.Configuraciones
 
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
+import android.location.LocationManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
-import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import com.example.seguridadciudadana.R
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.switchmaterial.SwitchMaterial
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import android.app.NotificationManager
+import android.util.Log
 
 class ConfigFragment : Fragment() {
 
-    // Claves para SharedPreferences
-    private val PREFS = "sos_prefs"
-    private val K_MENSAJE = "mensaje_sos"
-    private val K_DURACION = "video_duracion_seg"
-    private val K_DISCRETO = "modo_discreto"
-    private val K_ENLACE = "enlace_grupo_whatsapp"
+    // Keys para SharedPreferences
+    private val PREFS_NAME = "AppPrefs"
+    private val KEY_NOTIFICACIONES = "notificaciones_activas"
+    private val KEY_UBICACION = "ubicacion_activa"
 
-    // Vistas
-    private lateinit var tvDuracionValor: TextView
-    private lateinit var switchModoDiscreto: SwitchMaterial
+    private lateinit var switchNotificaciones: SwitchMaterial
+    private lateinit var switchUbicacion: SwitchMaterial
 
-    private lateinit var btnEditarMensaje: View
-    private lateinit var filaDuracionVideo: View
-    private lateinit var btnAgregarGrupos: View
-
-    private val opcionesDuracion = intArrayOf(5, 10, 15)
+    private val db = FirebaseFirestore.getInstance()
+    private val auth = FirebaseAuth.getInstance()
+    private val TAG = "ConfigFragment"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_config, container, false)
+        return inflater.inflate(R.layout.fragment_config, container, false) // Asegúrate que el nombre del layout es correcto
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Vincular vistas (asegúrate que IDs coincidan con tu XML)
-        tvDuracionValor       = view.findViewById(R.id.tvDuracionValor)
-        switchModoDiscreto    = view.findViewById(R.id.switchModoDiscreto)
+        switchNotificaciones = view.findViewById(R.id.switchNotificaciones)
+        switchUbicacion = view.findViewById(R.id.switchUbicacion)
 
-        btnEditarMensaje      = view.findViewById(R.id.btnEditarMensaje)
-        filaDuracionVideo     = view.findViewById(R.id.filaDuracionVideo)
-        btnAgregarGrupos  = view.findViewById(R.id.btnAgregarGrupos)
-
-        // Estado inicial
-        val p = prefs()
-        val mensaje = p.getString(K_MENSAJE, "Ayuda, estoy en peligro")!!
-        val duracion = p.getInt(K_DURACION, 5)
-        val discreto = p.getBoolean(K_DISCRETO, false)
-        val enlace = p.getString(K_ENLACE, "") ?: ""
-
-        tvDuracionValor.text = "$duracion s  >"
-        switchModoDiscreto.isChecked = discreto
-
-        // Listeners
-        btnEditarMensaje.setOnClickListener { mostrarDialogoMensaje(mensaje) }
-        filaDuracionVideo.setOnClickListener { mostrarDialogoDuracion(duracion) }
-
-        switchModoDiscreto.setOnCheckedChangeListener { _, checked ->
-            prefs().edit { putBoolean(K_DISCRETO, checked) }
-            toast(if (checked) "Modo discreto activado" else "Modo discreto desactivado")
-        }
-
-        btnAgregarGrupos.setOnClickListener { mostrarDialogoEnlace() }
+        cargarPreferencias()
+        configurarListeners()
     }
 
-    // --- Diálogo para mensaje ---
-    private fun mostrarDialogoMensaje(actual: String) {
-        val et = EditText(requireContext()).apply {
-            setText(actual)
-            setSelection(text.length)
-            maxLines = 4
-            hint = "Mensaje SOS"
+    override fun onResume() {
+        super.onResume()
+        actualizarEstadoSwitchesDesdeSistema()
+    }
+
+    private fun actualizarEstadoSwitchesDesdeSistema() {
+        val notificationManager = requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val locationManager = requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+        // 1. Desactivar Listeners antes de actualizar el estado
+        switchNotificaciones.setOnCheckedChangeListener(null)
+        switchUbicacion.setOnCheckedChangeListener(null)
+
+        // --- Lógica de Lectura del Sistema ---
+
+        // 1. Comprobar Notificaciones
+        val notificacionesHabilitadas = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            notificationManager.areNotificationsEnabled()
+        } else {
+            // Fallback: usar el estado de SharedPreferences
+            getSharedPreferences().getBoolean(KEY_NOTIFICACIONES, true)
         }
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Editar mensaje de auxilio")
-            .setView(et)
-            .setPositiveButton("Guardar") { _, _ ->
-                val nuevo = et.text.toString().trim()
-                if (nuevo.isEmpty()) toast("El mensaje no puede estar vacío")
-                else {
-                    prefs().edit { putString(K_MENSAJE, nuevo) }
-                    toast("Mensaje guardado")
+        switchNotificaciones.isChecked = notificacionesHabilitadas
+
+        // 2. Comprobar Ubicación (GPS)
+        val ubicacionHabilitada = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        switchUbicacion.isChecked = ubicacionHabilitada
+
+        // --- Lógica de Re-activación ---
+
+        // 3. Re-activar Listeners
+        switchNotificaciones.setOnCheckedChangeListener(createNotificacionesListener())
+        switchUbicacion.setOnCheckedChangeListener(createUbicacionListener())
+
+        // 4. (Opcional) Guardar el estado real de la ubicación
+        val prefsEditor = getSharedPreferences().edit()
+        prefsEditor.putBoolean(KEY_UBICACION, ubicacionHabilitada).apply()
+    }
+
+    private fun getSharedPreferences() =
+        requireActivity().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    // --- 1. Persistencia ---
+
+    private fun cargarPreferencias() {
+        val prefs = getSharedPreferences()
+
+        // Cargar estado de Notificaciones (por defecto: true)
+        val notificacionesActivas = prefs.getBoolean(KEY_NOTIFICACIONES, true)
+        switchNotificaciones.isChecked = notificacionesActivas
+
+        // Cargar estado de Ubicación (por defecto: true)
+        val ubicacionActiva = prefs.getBoolean(KEY_UBICACION, true)
+        switchUbicacion.isChecked = ubicacionActiva
+    }
+
+    // --- 2. Lógica de Switches ---
+
+    private fun configurarListeners() {
+        // Definimos los listeners fuera para poder removerlos/agregarlos
+        val notificacionesListener = createNotificacionesListener()
+        val ubicacionListener = createUbicacionListener()
+
+        switchNotificaciones.setOnCheckedChangeListener(notificacionesListener)
+        switchUbicacion.setOnCheckedChangeListener(ubicacionListener)
+    }
+
+    private fun abrirConfiguracionUbicacionSistema() {
+        val intent = Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+        startActivity(intent)
+    }
+
+    private fun abrirConfiguracionNotificacionesApp() {
+        val intent = Intent().apply {
+            when {
+                // Android 8.0 (Oreo) y superior: Abre la configuración de notificación específica de la app
+                android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O -> {
+                    action = android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                    putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, requireContext().packageName)
+                }
+                // Versiones anteriores (hasta Android 5.0 Lollipop): Intenta abrir la info de la app
+                android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP -> {
+                    action = android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                    data = android.net.Uri.fromParts("package", requireContext().packageName, null)
+                }
+                else -> {
+                    action = android.provider.Settings.ACTION_SETTINGS
                 }
             }
-            .setNegativeButton("Cancelar", null)
-            .show()
-    }
-
-    // --- Diálogo para duración ---
-    private fun mostrarDialogoDuracion(actual: Int) {
-        val labels = arrayOf("5 s", "10 s", "15 s")
-        val checked = opcionesDuracion.indexOf(actual).let { if (it >= 0) it else 0 }
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Duración del video")
-            .setSingleChoiceItems(labels, checked) { dialog, which ->
-                val sel = opcionesDuracion[which]
-                prefs().edit { putInt(K_DURACION, sel) }
-                tvDuracionValor.text = "$sel s  >"
-                dialog.dismiss()
-            }
-            .setNegativeButton("Cancelar", null)
-            .show()
-    }
-
-    // --- Diálogo para enlace de WhatsApp ---
-    private fun mostrarDialogoEnlace() {
-        val actual = prefs().getString(K_ENLACE, "") ?: ""
-        val et = EditText(requireContext()).apply {
-            hint = "https://chat.whatsapp.com/..."
-            setText(actual)
-            setSelection(text.length)
         }
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Enlace del grupo de WhatsApp")
-            .setMessage("Pega el enlace del grupo (opcional). Debes ser miembro para abrirlo.")
-            .setView(et)
-            .setPositiveButton("Guardar") { _, _ ->
-                val link = et.text.toString().trim()
-                if (link.isNotEmpty() && !esEnlaceValido(link)) {
-                    toast("Ingresa un enlace válido de WhatsApp")
-                } else {
-                    prefs().edit { putString(K_ENLACE, link) }
-                    toast(if (link.isBlank()) "Enlace eliminado" else "Enlace guardado")
-                }
-            }
-            .setNegativeButton("Cancelar", null)
-            .show()
+        startActivity(intent)
     }
 
-    // --- Probar enlace de WhatsApp ---
-    private fun probarEnlaceGrupo() {
-        val link = prefs().getString(K_ENLACE, "") ?: ""
-        if (link.isBlank()) { toast("Primero guarda el enlace del grupo"); return }
-        if (!estaWhatsAppInstalado()) { toast("Instala WhatsApp para abrir el grupo"); return }
-
-        try {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link)).apply {
-                setPackage("com.whatsapp")
-            })
-        } catch (_: ActivityNotFoundException) {
-            // Intentar WhatsApp Business o sin paquete
-            try {
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link)).apply {
-                    setPackage("com.whatsapp.w4b")
-                })
-            } catch (_: ActivityNotFoundException) {
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link)))
-            }
-        } catch (_: Exception) {
-            toast("No se pudo abrir el enlace")
+    private fun createNotificacionesListener(): (View, Boolean) -> Unit {
+        return { _, isChecked ->
+            abrirConfiguracionNotificacionesApp()
+            // Forzar el switch a la posición opuesta para que el usuario
+            // lo cambie manualmente en la configuración.
+            switchNotificaciones.isChecked = !isChecked
         }
     }
 
-    // --- Utils ---
-    private fun esEnlaceValido(link: String): Boolean {
-        val re = Regex("^https://chat\\.whatsapp\\.com/[-_A-Za-z0-9]+$")
-        return re.matches(link)
-    }
+    private fun createUbicacionListener(): (View, Boolean) -> Unit {
+        return { _, isChecked ->
+            abrirConfiguracionUbicacionSistema()
 
-    private fun estaWhatsAppInstalado(): Boolean {
-        val pm: PackageManager = requireContext().packageManager
-        return try {
-            pm.getPackageInfo("com.whatsapp", 0); true
-        } catch (_: Exception) {
-            try { pm.getPackageInfo("com.whatsapp.w4b", 0); true }
-            catch (_: Exception) { false }
+            // Aquí reintroducimos la lógica de eliminar datos si la ubicación se desactiva
+            if (!isChecked) {
+                eliminarDatosGeoGraficos()
+            }
+
+            // Forzar el switch a la posición opuesta
+            switchUbicacion.isChecked = !isChecked
         }
     }
+    private fun eliminarDatosGeoGraficos() {
+        val userId = auth.currentUser?.uid ?: return
 
-    private fun prefs() = requireContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-    private fun toast(msg: String) = Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+        val userRef = db.collection("usuarios").document(userId)
+
+        // 1. Eliminar el token FCM (para que NO reciba alertas geográficas)
+        userRef.update("fcmToken", null)
+            .addOnSuccessListener {
+                Log.d(TAG, "fcmToken eliminado de Firestore.")
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error al eliminar fcmToken: ${e.message}")
+            }
+
+        // 2. Eliminar/anular la ubicación (para que NO aparezca en el mapa de otros)
+        userRef.update("ubicacion", null)
+            .addOnSuccessListener {
+                Log.d(TAG, "Ubicación eliminada de Firestore.")
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error al eliminar ubicación: ${e.message}")
+            }
+
+        // 3. (Opcional) Desactivar el servicio de seguimiento de ubicación si está corriendo
+        // Necesitarías implementar una función para detener el servicio de ubicación aquí.
+    }
 }

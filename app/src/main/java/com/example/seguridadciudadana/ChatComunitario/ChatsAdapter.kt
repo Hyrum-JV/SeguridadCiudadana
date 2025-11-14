@@ -10,7 +10,8 @@ import com.example.seguridadciudadana.R
 
 class ChatsAdapter(
     private val chats: List<Chat>,
-    private val onChatClick: (Chat) -> Unit
+    private val onChatClick: (Chat) -> Unit,
+    private val onChatLongClick: (Chat) -> Boolean
 ) : RecyclerView.Adapter<ChatsAdapter.ChatViewHolder>() {
 
     inner class ChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -23,6 +24,10 @@ class ChatsAdapter(
 
             itemView.setOnClickListener {
                 onChatClick(chat)
+            }
+            itemView.setOnLongClickListener {
+                onChatLongClick(chat)
+                true
             }
         }
     }
