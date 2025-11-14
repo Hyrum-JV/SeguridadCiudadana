@@ -202,10 +202,26 @@ class MensajeAdapter(
 
         private fun mostrarImagenGrande(url: String?) {
             if (url.isNullOrEmpty()) return
-            val dialog = AlertDialog.Builder(itemView.context).create()
-            val imageView = ImageView(itemView.context)
-            imageView.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-            Glide.with(itemView.context).load(url).into(imageView)
+
+            val context = itemView.context
+            val dialog = AlertDialog.Builder(context).create() // Usar un tema de diálogo de pantalla completa (si lo tienes)
+
+            // Crear un ImageView nuevo para el diálogo
+            val imageView = ImageView(context).apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT // Cambiar a WRAP_CONTENT para mejor ajuste
+                )
+                adjustViewBounds = true // Permite que ImageView ajuste su tamaño para mantener la relación de aspecto
+            }
+
+            // Usar Glide para cargar la imagen grande
+            Glide.with(context)
+                .load(url)
+                .placeholder(R.drawable.ic_broken_image) // Añade un placeholder visual
+                .error(R.drawable.ic_broken_image) // Añade un ícono de error
+                .into(imageView)
+
             dialog.setView(imageView)
             dialog.show()
         }

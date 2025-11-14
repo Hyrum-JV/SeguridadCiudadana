@@ -67,7 +67,7 @@
             )
 
             val notification = NotificationCompat.Builder(this, "seguridad_alerts")
-                .setSmallIcon(R.drawable.ic_stat_alert)
+                .setSmallIcon(R.drawable.logo_app)
                 .setContentTitle(title)
                 .setContentText(body)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(body))
