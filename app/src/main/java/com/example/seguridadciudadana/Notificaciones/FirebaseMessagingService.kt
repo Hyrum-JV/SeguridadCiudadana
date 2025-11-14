@@ -9,6 +9,7 @@
     import android.util.Log
     import androidx.core.app.NotificationCompat
     import androidx.core.app.NotificationManagerCompat
+    import com.example.seguridadciudadana.ChatActivity
     import com.example.seguridadciudadana.MainActivity
     import com.example.seguridadciudadana.R
     import com.google.firebase.messaging.FirebaseMessagingService
@@ -35,6 +36,23 @@
             val body = remoteMessage.notification?.body
                 ?: remoteMessage.data["body"]
                 ?: "Revisa la noticia."
+
+            val chatId = remoteMessage.data["chatId"]
+            val tipoAlerta = remoteMessage.data["tipo_alerta"]
+
+            if (tipoAlerta == "nuevo_mensaje" && chatId != null && chatId == ChatActivity.chatActivoId) {
+                Log.d("FCMService", "Mensaje recibido, pero el chat está activo. Ignorando notificación.")
+                return // ¡Detener el proceso aquí!
+            }
+
+            if (tipoAlerta == "nuevo_mensaje") {
+                // Lógica para notificar el nuevo mensaje de chat (ej: "X te envió un mensaje")
+                val senderTitle = remoteMessage.notification?.title ?: "Nuevo Mensaje"
+                val senderBody = remoteMessage.notification?.body ?: "Revisa el chat."
+
+                mostrarNotificacion(senderTitle, senderBody, chatId) // Debes implementar esta función
+                return
+            }
 
             // Datos adicionales esperados del payload (si los envías)
             val url = remoteMessage.data["url"] ?: ""
@@ -79,6 +97,42 @@
             with(NotificationManagerCompat.from(this)) {
                 // Usa un ID único para que no se sobrescriban las notificaciones
                 notify(System.currentTimeMillis().toInt(), notification)
+            }
+        }
+
+        private fun mostrarNotificacion(title: String, body: String, chatId: String?) {
+            // Es crucial que chatId no sea nulo aquí si es un mensaje de chat
+            if (chatId == null) return
+
+            // 1. Intent para abrir la ChatActivity con el ID correcto
+            val intent = Intent(this, ChatActivity::class.java).apply {
+                putExtra("chatId", chatId) // Le pasamos el ID del chat
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+
+            // Usamos el hashCode del chatId como RequestCode para el PendingIntent
+            val requestCode = chatId.hashCode()
+
+            val pi = PendingIntent.getActivity(
+                this,
+                requestCode,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            // 2. Construir la notificación
+            val notification = NotificationCompat.Builder(this, "seguridad_alerts")
+                .setSmallIcon(R.drawable.logo_app) // Usar el mismo ícono que el de las alertas
+                .setContentTitle(title)
+                .setContentText(body)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .setContentIntent(pi)
+                .build()
+
+            // Usamos el hashCode del chatId como ID de la notificación para que los mensajes del mismo chat se agrupen.
+            with(NotificationManagerCompat.from(this)) {
+                notify(requestCode, notification)
             }
         }
 

@@ -167,6 +167,21 @@ class ChatActivity : AppCompatActivity() {
             .addOnSuccessListener { if (tipo == "text") etMensaje.text.clear() }
     }
 
+    companion object {
+        var chatActivoId: String? = null // El ID del chat que está abierto
+    }
+
+    override fun onResume() {
+        super.onResume()
+        ChatActivity.chatActivoId = chatId // Notificar que este chat está abierto
+        cargarMensajes() // Mantener esta lógica
+    }
+
+    override fun onPause() {
+        super.onPause()
+        ChatActivity.chatActivoId = null // Notificar que el chat ya no está abierto
+    }
+
     private fun seleccionarMedia() {
         val permission = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             Manifest.permission.READ_MEDIA_IMAGES
