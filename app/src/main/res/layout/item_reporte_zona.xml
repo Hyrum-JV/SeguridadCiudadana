@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/card_reporte"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginTop="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:id="@+id/layout_contenido"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="@android:color/white"
+            android:orientation="vertical"
+            android:padding="12dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/layout_imagen_contenedor"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/tv_categoria"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                tools:text="💡 REPORTE: Robo a mano armada" />
+
+            <TextView
+                android:id="@+id/tv_ubicacion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="12sp"
+                tools:text="UBICACIÓN: Calle Principal 123" />
+
+            <TextView
+                android:id="@+id/tv_descripcion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:textColor="#388E3C"
+                android:textSize="12sp"
+                android:textStyle="italic"
+                android:visibility="visible"
+                tools:text="DESCRIPCIÓN: Aquí habrá una descripción de 20 o 50 caracteres." />
+
+            <TextView
+                android:id="@+id/tv_hora_reporte"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="#757575"
+                android:textSize="10sp"
+                tools:text="Hace 5 minutos" />
+
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/layout_imagen_contenedor"
+            android:layout_width="100dp"
+            android:layout_height="0dp"
+            android:background="#689F38"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/layout_contenido"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/img_evidencia"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                tools:src="@drawable/ic_camara"
+                android:alpha="0.7"
+                android:contentDescription="Imagen de evidencia" />
+
+
+        </FrameLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

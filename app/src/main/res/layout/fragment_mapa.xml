@@ -1,25 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/mapa_container"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <fragment
-        android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
+    <FrameLayout
+        android:id="@+id/mapa_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent">
 
-    <Spinner
-        android:id="@+id/spinnerFiltroTiempo"
-        android:layout_width="wrap_content"
+        <fragment
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/bottom_sheet_layout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|start"
-        android:layout_marginTop="16dp"
-        android:layout_marginStart="16dp"
-        android:padding="8dp"
-        android:elevation="4dp"
-        android:background="@android:color/white"
-        android:entries="@array/default_filter_options"/>
+        android:orientation="vertical"
+        android:background="@drawable/rounded_top_corners"
+        android:elevation="8dp"
+        app:layout_behavior="@string/bottom_sheet_behavior">
 
-</FrameLayout>
+        <View
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:background="@android:color/darker_gray" />
+
+        <TextView
+            android:id="@+id/tv_bottom_sheet_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Lo último en la zona"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="16dp"
+            android:textColor="@android:color/black"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_reportes_zona"
+            android:layout_width="match_parent"
+            android:layout_height="300dp" android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:nestedScrollingEnabled="true"
+            tools:listitem="@layout/item_reporte_zona" />
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

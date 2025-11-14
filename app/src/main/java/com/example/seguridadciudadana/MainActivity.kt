@@ -262,9 +262,7 @@ class MainActivity : AppCompatActivity() {
         when (fragment) {
             is com.example.seguridadciudadana.Configuraciones.ConfigFragment,
             is com.example.seguridadciudadana.Perfil.PerfilFragment,
-            is NotificacionesFragment,
-                // NUEVO: Agrega ChatsFragment aquí para ocultar bottom nav
-            is ChatsFragment -> {
+            is NotificacionesFragment -> {
                 bottomNavigation.visibility = View.GONE
             }
             else -> {
