@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -51,14 +52,53 @@ class ChatsFragment : Fragment() {
         cargarChats()
     }
 
-    private fun configurarRecyclerView() {
-        chatsAdapter = ChatsAdapter(chatsList) { chat ->
-            val intent = Intent(requireContext(), ChatActivity::class.java).apply {
-                putExtra("chatId", chat.id)
-                putExtra("chatNombre", chat.nombre)
-            }
-            startActivity(intent)
+    private fun eliminarChat(chat: Chat) {
+        val currentUser = auth.currentUser
+
+        // Solo permitir eliminar si el usuario es el creador del chat.
+        if (currentUser?.uid != chat.creador) {
+            Toast.makeText(requireContext(), "Solo el creador puede eliminar este chat.", Toast.LENGTH_SHORT).show()
+            return
         }
+
+        // 1. Mostrar Diálogo de Confirmación
+        AlertDialog.Builder(requireContext())
+            .setTitle("Eliminar Chat")
+            .setMessage("¿Estás seguro de que deseas eliminar permanentemente el chat '${chat.nombre}'? Esta acción es irreversible y eliminará todos los mensajes.")
+            .setPositiveButton("Eliminar") { dialog, which ->
+
+                // 2. Ejecutar la Eliminación de Firestore
+                db.collection("chats").document(chat.id).delete()
+                    .addOnSuccessListener {
+                        Toast.makeText(requireContext(), "Chat '${chat.nombre}' eliminado.", Toast.LENGTH_SHORT).show()
+                        // La eliminación del chat de la lista será manejada automáticamente por el SnapshotListener.
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e(TAG, "Error al eliminar chat: ${e.message}")
+                        Toast.makeText(requireContext(), "Error al intentar eliminar el chat.", Toast.LENGTH_SHORT).show()
+                    }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun configurarRecyclerView() {
+        // Definimos el comportamiento de LONG CLICK aquí:
+        chatsAdapter = ChatsAdapter(chatsList,
+            onChatClick = { chat ->
+                // Click normal (abre el chat)
+                val intent = Intent(requireContext(), ChatActivity::class.java).apply {
+                    putExtra("chatId", chat.id)
+                    putExtra("chatNombre", chat.nombre)
+                }
+                startActivity(intent)
+            },
+            onChatLongClick = { chat ->
+                // Long click (muestra el diálogo de eliminación)
+                eliminarChat(chat)
+                true // Devuelve true para consumir el evento
+            }
+        )
 
         rvChats.apply {
             layoutManager = LinearLayoutManager(requireContext())

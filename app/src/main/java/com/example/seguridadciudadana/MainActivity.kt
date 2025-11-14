@@ -33,6 +33,7 @@ import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import java.io.File
+import kotlinx.coroutines.tasks.await
 import com.google.firebase.Timestamp
 
 class MainActivity : AppCompatActivity() {
@@ -50,6 +51,8 @@ class MainActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
         val currentUser = auth.currentUser
+
+        obtenerYGuardarTokenFCM()
 
         // 1. CHEQUEO DE AUTENTICACIÓN (ÚNICO)
         if (currentUser == null) {
@@ -310,6 +313,40 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         if (intent != null) handleNotificationExtras(intent)
+    }
+
+    private fun obtenerYGuardarTokenFCM() {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser == null) {
+            return // Usuario no autenticado
+        }
+
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.w("FCMToken", "Error al obtener token FCM", task.exception)
+                return@addOnCompleteListener
+            }
+
+            // Obtener el nuevo token
+            val token = task.result
+
+            // Guardar en Firestore
+            actualizarTokenEnFirestore(currentUser.uid, token)
+        }
+    }
+
+    private fun actualizarTokenEnFirestore(userId: String, token: String) {
+        val db = FirebaseFirestore.getInstance()
+
+        // Almacena el token en el documento del usuario.
+        db.collection("usuarios").document(userId)
+            .update("fcmToken", token)
+            .addOnSuccessListener {
+                Log.d("FCMToken", "Token actualizado con éxito para el usuario: $userId")
+            }
+            .addOnFailureListener { e ->
+                Log.e("FCMToken", "Error al actualizar el token", e)
+            }
     }
 
     // 🎯 MODIFICADA: Usa los mismos campos que MyFirebaseMessagingService (snippet, imagen, noticias)

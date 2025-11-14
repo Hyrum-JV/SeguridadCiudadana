@@ -12,6 +12,7 @@ import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
@@ -73,26 +74,42 @@ class ChatActivity : AppCompatActivity() {
             btnEnviar.setOnClickListener { enviarMensaje() }
             btnEnviarImagen.setOnClickListener { seleccionarMedia() }
 
+            configurarRecyclerView() // Configurar el RecyclerView temprano
+
             val currentUser = auth.currentUser
             if (currentUser != null) {
                 db.collection("chats").document(chatId).get().addOnSuccessListener { doc ->
+
+                    // 1. Inicializar el objeto chat
                     chat = doc.toObject(Chat::class.java) ?: return@addOnSuccessListener
-                    if (!chat.esAdmin(currentUser.uid)) {
-                        layoutAdmin.visibility = View.GONE
+
+                    // 2. Verificar el rol *después* de que 'chat' se carga
+                    val esAdmin = chat.esAdmin(currentUser.uid)
+
+                    // 3. Configurar visibilidad del panel de administración
+                    if (esAdmin) {
+                        layoutAdmin.visibility = View.VISIBLE // MUESTRA los botones
+                    } else {
+                        layoutAdmin.visibility = View.GONE    // OCULTA los botones
                     }
-                    configurarRecyclerView()
+
+                    // 4. Configurar listeners que dependen del chat/rol
                     cargarMensajes()
                     toolbar.setOnClickListener { mostrarDialogDetallesChat() }
-                    btnAgregarMiembro.setOnClickListener { agregarMiembro() }
-                    btnEliminarMiembro.setOnClickListener { eliminarMiembro() }
+
+                    // 5. Configurar botones de administración
+                    btnAgregarMiembro.setOnClickListener { agregarMiembroDialog() } // Usar Dialog
+                    btnEliminarMiembro.setOnClickListener { eliminarMiembroDialog() } // Usar Dialog
+
+                }.addOnFailureListener { e ->
+                    Log.e("ChatActivity", "Error al cargar datos del chat: ${e.message}", e)
+                    // Opcional: Mostrar un Toast de error
                 }
             } else {
-                configurarRecyclerView()
+                // Lógica para usuario no autenticado (solo cargar mensajes)
                 cargarMensajes()
-                toolbar.setOnClickListener { /* Nada */ }
-                btnAgregarMiembro.setOnClickListener { /* Nada */ }
-                btnEliminarMiembro.setOnClickListener { /* Nada */ }
             }
+
         } catch (e: Exception) {
             Log.e("ChatActivity", "Crash en onCreate: ${e.message}", e)
             throw e
@@ -202,14 +219,37 @@ class ChatActivity : AppCompatActivity() {
         agregarMiembroDialog()
     }
 
-    private fun eliminarMiembro() {
-        val uidEliminar = "UID_A_ELIMINAR"
-        if (!chat.miembrosUids.contains(uidEliminar) || uidEliminar == chat.creador) return
+    private fun ejecutarEliminacionMiembro(uidEliminar: String) {
+        if (!::chat.isInitialized || !chat.miembrosUids.contains(uidEliminar)) return
+
+        // Prevenir eliminar al creador
+        if (uidEliminar == chat.creador) {
+            Toast.makeText(this, "No puedes eliminar al creador del chat.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // 1. Crear los nuevos mapas sin el miembro
         val nuevosMiembros = chat.miembros.toMutableMap()
-        nuevosMiembros.remove(uidEliminar)
+        nuevosMiembros.remove(uidEliminar) // Elimina del mapa de roles
+
         val nuevosUids = chat.miembrosUids.toMutableList()
-        nuevosUids.remove(uidEliminar)
-        db.collection("chats").document(chatId).update("miembros", nuevosMiembros, "miembrosUids", nuevosUids)
+        nuevosUids.remove(uidEliminar) // Elimina de la lista de UIDs
+
+        // 2. Actualizar Firestore
+        db.collection("chats").document(chatId)
+            .update(
+                "miembros", nuevosMiembros,
+                "miembrosUids", nuevosUids
+            )
+            .addOnSuccessListener {
+                Toast.makeText(this, "Miembro eliminado exitosamente.", Toast.LENGTH_SHORT).show()
+
+                // Opcional: Refrescar el objeto 'chat' local para mantener el estado
+                chat = chat.copy(miembros = nuevosMiembros, miembrosUids = nuevosUids)
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Error al eliminar miembro: ${e.message}", Toast.LENGTH_LONG).show()
+            }
     }
 
     private fun mostrarDialogDetallesChat() {
@@ -267,21 +307,131 @@ class ChatActivity : AppCompatActivity() {
         val currentUser = auth.currentUser ?: return
         db.collection("usuarios").document(currentUser.uid).collection("contactos").get()
             .addOnSuccessListener { docs ->
-                val contactos = docs.map { it.id }
-                val nombres = mutableListOf<String>()
-                contactos.forEach { uid ->
-                    db.collection("usuarios").document(uid).get().addOnSuccessListener { doc ->
-                        nombres.add(doc.getString("nombre") ?: uid)
+                val contactos = docs.map { it.id } // Lista de UIDs
+                val contactosConNombre = mutableMapOf<String, String>() // Mapa: UID -> Nombre
+
+                // Si no hay contactos, mostrar mensaje y salir
+                if (contactos.isEmpty()) {
+                    Toast.makeText(this, "No tienes contactos para agregar.", Toast.LENGTH_SHORT)
+                        .show()
+                    return@addOnSuccessListener
+                }
+
+                var cargados = 0
+                val totalContactos = contactos.size
+
+                // Función para verificar si todos han cargado y mostrar el diálogo
+                val verificarYMostrarDialog = {
+                    if (cargados == totalContactos) {
+                        mostrarDialogoSeleccion(contactos, contactosConNombre)
                     }
                 }
-                val builder = AlertDialog.Builder(this)
-                builder.setTitle("Seleccionar Usuario")
-                builder.setItems(nombres.toTypedArray()) { _, which ->
-                    val uidSeleccionado = contactos[which]
-                    agregarMiembro(uidSeleccionado)
+
+                contactos.forEach { uid ->
+                    // 1. Obtener el nombre de cada contacto
+                    db.collection("usuarios").document(uid).get()
+                        .addOnSuccessListener { doc ->
+                            val nombre = doc.getString("nombre") ?: "Usuario desconocido ($uid)"
+                            contactosConNombre[uid] = nombre
+                            cargados++
+                            verificarYMostrarDialog() // Verificar después de cada éxito
+                        }
+                        .addOnFailureListener {
+                            // Si falla, usar el UID como nombre de respaldo
+                            contactosConNombre[uid] = "Error al cargar ($uid)"
+                            cargados++
+                            verificarYMostrarDialog() // Verificar también si falla
+                        }
                 }
+            }
+    }
+
+    private fun mostrarDialogoSeleccion(contactosUids: List<String>, contactosConNombre: Map<String, String>) {
+        // 1. Obtener los nombres para el AlertDialog (manteniendo el orden de contactosUids)
+        val nombresParaMostrar = contactosUids.map { uid ->
+            contactosConNombre[uid] ?: uid // Usar nombre cargado o fallback a UID
+        }.toTypedArray()
+
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Seleccionar Usuario")
+
+        builder.setItems(nombresParaMostrar) { _, which ->
+            // 2. Usar la lista original de UIDs para obtener el UID correcto
+            val uidSeleccionado = contactosUids[which]
+            agregarMiembro(uidSeleccionado)
+        }
+        builder.show()
+    }
+
+    private fun eliminarMiembroDialog() {
+        val currentUser = auth.currentUser ?: return
+
+        // 1. Verificar si el chat está inicializado y si el usuario es admin
+        if (!::chat.isInitialized || !chat.esAdmin(currentUser.uid)) {
+            Toast.makeText(this, "Solo los administradores pueden eliminar miembros.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // 2. Filtrar miembros: excluimos al creador (admin) y al propio usuario por seguridad
+        val miembrosParaEliminar = chat.miembrosUids
+            .filter { uid -> uid != chat.creador }
+            .filter { uid -> uid != currentUser.uid } // No permitimos que se auto-elimine
+
+        if (miembrosParaEliminar.isEmpty()) {
+            Toast.makeText(this, "No hay miembros elegibles para eliminar.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // 3. Crear listas para el diálogo
+        val nombresMiembros = mutableListOf<String>()
+        val uidsMiembros = mutableListOf<String>()
+
+        var cargados = 0
+        val totalMiembros = miembrosParaEliminar.size
+
+        val mostrarDialogo = {
+            if (cargados == totalMiembros) {
+                val builder = AlertDialog.Builder(this)
+                builder.setTitle("Eliminar Miembro")
+
+                builder.setItems(nombresMiembros.toTypedArray()) { _, which ->
+                    val uidSeleccionado = uidsMiembros[which]
+                    confirmarEliminarMiembro(uidSeleccionado, nombresMiembros[which])
+                }
+                builder.setNegativeButton("Cancelar", null)
                 builder.show()
             }
+        }
+
+        // 4. Cargar nombres de los miembros (lógica asíncrona con contador)
+        miembrosParaEliminar.forEach { uid ->
+            db.collection("usuarios").document(uid).get()
+                .addOnSuccessListener { doc ->
+                    val nombre = doc.getString("nombre") ?: "Usuario desconocido ($uid)"
+                    nombresMiembros.add(nombre)
+                    uidsMiembros.add(uid)
+                    cargados++
+                    mostrarDialogo()
+                }
+                .addOnFailureListener {
+                    // En caso de fallo, usamos el UID
+                    nombresMiembros.add("Error al cargar ($uid)")
+                    uidsMiembros.add(uid)
+                    cargados++
+                    mostrarDialogo()
+                }
+        }
+    }
+
+    private fun confirmarEliminarMiembro(uid: String, nombre: String) {
+        AlertDialog.Builder(this)
+            .setTitle("Confirmar Eliminación")
+            .setMessage("¿Estás seguro de que deseas eliminar a $nombre del chat?")
+            .setPositiveButton("Eliminar") { _, _ ->
+                ejecutarEliminacionMiembro(uid)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun agregarMiembro(uid: String) {

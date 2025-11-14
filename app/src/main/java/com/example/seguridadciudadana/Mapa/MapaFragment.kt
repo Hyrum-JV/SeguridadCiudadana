@@ -44,7 +44,7 @@ import java.util.TimeZone
 import android.os.Handler
 import java.util.concurrent.TimeUnit
 
-class MapaFragment : Fragment(), OnMapReadyCallback {
+class MapaFragment : Fragment(), OnMapReadyCallback, ReporteAdapter.OnReporteClickListener {
 
     private lateinit var map: GoogleMap
 
@@ -98,7 +98,7 @@ class MapaFragment : Fragment(), OnMapReadyCallback {
         })
 
         rvReportes = view.findViewById(R.id.rv_reportes_zona)
-        reporteAdapter = ReporteAdapter(reportesList)
+        reporteAdapter = ReporteAdapter(reportesList, this)
         rvReportes.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = reporteAdapter
@@ -226,6 +226,17 @@ class MapaFragment : Fragment(), OnMapReadyCallback {
 
     private fun stopLocationUpdates() {
         fusedLocationClient.removeLocationUpdates(locationCallback)
+    }
+
+    override fun onReporteClicked(lat: Double, lon: Double) {
+        val latLng = LatLng(lat, lon)
+        // 🚨 Acción clave: Mover y animar la cámara al reporte con un buen zoom (ej: 16f)
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16f))
+
+        // Opcional: Asegurarse de que el bottom sheet se colapse para que el usuario vea el mapa
+        if (bottomSheetBehavior.state != BottomSheetBehavior.STATE_COLLAPSED) {
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        }
     }
 
     override fun onResume() {
@@ -436,7 +447,6 @@ class MapaFragment : Fragment(), OnMapReadyCallback {
         map.isMyLocationEnabled = true
         startLocationUpdates()
     }
-
 
     // Cuando el usuario responde al permiso
     override fun onRequestPermissionsResult(
