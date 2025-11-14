@@ -36,7 +36,12 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.storage.FirebaseStorage
 import java.io.ByteArrayOutputStream
-import java.io.File
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import androidx.core.app.NotificationCompat
+import android.content.Context
+import android.os.Build
+import java.util.Locale
 
 class CrearReporte : Fragment() {
 
@@ -58,7 +63,9 @@ class CrearReporte : Fragment() {
 
     private val REQUEST_TOMAR_FOTO = 101
     private val REQUEST_GRABAR_VIDEO = 102
-    private val REQUEST_GALERIA = 103
+
+    private val CHANNEL_ID = "report_upload_channel"
+    private val NOTIFICATION_ID = 1
 
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
@@ -108,26 +115,35 @@ class CrearReporte : Fragment() {
     }
 
     private fun obtenerUbicacion() {
+        // 1. Verificar permisos
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(requireActivity(), arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 100)
             return
         }
 
+        // 2. Obtener la ubicación
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
             ubicacionActual = location
-            tvUbicacion.text = if (location != null) "Ubicación: ${location.latitude}, ${location.longitude}" else "Ubicación no disponible"
+
+            if (location != null) {
+                // ✅ CLAVE: Usar la geocodificación para obtener la dirección
+                val direccion = obtenerDireccion(location)
+                tvUbicacion.text = direccion // Muestra la calle
+            } else {
+                // Ubicación no disponible
+                tvUbicacion.text = "Ubicación no disponible"
+            }
         }
     }
 
     private fun mostrarDialogAdjuntar() {
-        val opciones = arrayOf("Tomar Foto", "Grabar Video", "Seleccionar de Galería")
+        val opciones = arrayOf("Tomar Foto", "Grabar Video")
         AlertDialog.Builder(requireContext())
             .setTitle("Adjuntar Evidencia")
             .setItems(opciones) { _, which ->
                 when (which) {
                     0 -> tomarFoto()
                     1 -> grabarVideo()
-                    2 -> seleccionarDeGaleria()
                 }
             }
             .show()
@@ -149,17 +165,6 @@ class CrearReporte : Fragment() {
         }
         val intent = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
         startActivityForResult(intent, REQUEST_GRABAR_VIDEO)
-    }
-
-    private fun seleccionarDeGaleria() {
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(requireActivity(), arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), REQUEST_GALERIA)
-            return
-        }
-        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        intent.type = "*/*"
-        intent.putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/*", "video/*"))
-        startActivityForResult(intent, REQUEST_GALERIA)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -184,14 +189,6 @@ class CrearReporte : Fragment() {
                     imagenBytes = null
                     tipoEvidencia = "video"
                 }
-                REQUEST_GALERIA -> {
-                    archivoAdjuntoUri = data.data
-                    val mimeType = requireContext().contentResolver.getType(archivoAdjuntoUri!!)
-                    tipoEvidencia = if (mimeType?.startsWith("video/") == true) "video" else "image"
-                    imgPreview.setImageURI(archivoAdjuntoUri)
-                    imgPreview.visibility = View.VISIBLE
-                    imagenBytes = null
-                }
             }
         }
     }
@@ -208,17 +205,44 @@ class CrearReporte : Fragment() {
         subirArchivoYGuardarReporte(categoria, descripcion, ubicacionActual!!)
     }
 
+    private fun mostrarNotificacionExito(context: Context) {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        // 1. Crear el canal de notificación (Necesario para API 26+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = "Notificaciones de Reportes"
+            val descriptionText = "Notificaciones sobre el estado de los reportes enviados."
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
+                description = descriptionText
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        // 2. Construir la notificación
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.logo_app) // Reemplaza ic_notification por un ícono real
+            .setContentTitle("✅ Reporte Enviado Correctamente")
+            .setContentText("Tu reporte de seguridad ha sido procesado y distribuido.")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true) // Se cierra al tocarla
+
+        // 3. Disparar la notificación
+        notificationManager.notify(NOTIFICATION_ID, builder.build())
+    }
+
+
+
     private fun subirArchivoYGuardarReporte(categoria: String, descripcion: String, ubicacion: Location) {
         val currentUser = auth.currentUser ?: return
 
-        Log.d("CrearReporte", "Iniciando subida de reporte: categoria=$categoria, descripcion=$descripcion, uri=$archivoAdjuntoUri, bytes=${imagenBytes != null}")
-
+        // Caso 1: SIN evidencia. Se llama al guardado principal con URI vacía.
         if (archivoAdjuntoUri == null && imagenBytes == null) {
-            // Sin evidencia
-            enviarMensajeAChats(categoria, descripcion, ubicacion, "")
+            guardarReportePrincipal(categoria, descripcion, ubicacion, "")
             return
         }
 
+        // Caso 2: CON evidencia. Subir a Storage.
         val fileName = "${System.currentTimeMillis()}_${currentUser.uid}"
         val ref = storage.child("evidencias/$fileName")
 
@@ -230,7 +254,7 @@ class CrearReporte : Fragment() {
 
         uploadTask.addOnSuccessListener {
             ref.downloadUrl.addOnSuccessListener { uri ->
-                enviarMensajeAChats(categoria, descripcion, ubicacion, uri.toString())
+                guardarReportePrincipal(categoria, descripcion, ubicacion, uri.toString())
             }
         }.addOnFailureListener { e ->
             Log.e("CrearReporte", "Error al subir archivo: ${e.message}", e)
@@ -238,7 +262,142 @@ class CrearReporte : Fragment() {
         }
     }
 
-    private fun enviarMensajeAChats(categoria: String, descripcion: String?, ubicacion: Location, evidenciaUri: String) {
+    private fun guardarReportePrincipal(categoria: String, descripcion: String?, ubicacion: Location, evidenciaUri: String) {
+        val currentUser = auth.currentUser ?: return
+
+        val reporteData = hashMapOf(
+            "userId" to currentUser.uid,
+            "categoria" to categoria,
+            "descripcion" to descripcion,
+            "evidenciaUrl" to evidenciaUri,
+            "tipoEvidencia" to (tipoEvidencia ?: "none"),
+            "ubicacion" to GeoPoint(ubicacion.latitude, ubicacion.longitude),
+            "timestamp" to Timestamp.now()
+        )
+
+        // 1. Guardar en la colección 'reportes' para que aparezca en el mapa
+        db.collection("reportes").add(reporteData)
+            .addOnSuccessListener {
+                Log.d("CrearReporte", "✅ Reporte principal guardado en Firestore: ${it.id}")
+
+                // 2. Si el reporte principal se guarda, enviar el mensaje a los chats
+                iniciarDistribucion(categoria, descripcion, ubicacion, evidenciaUri)
+            }
+            .addOnFailureListener { e ->
+                Log.e("CrearReporte", "❌ Error al guardar reporte principal: ${e.message}", e)
+                Toast.makeText(requireContext(), "Error al guardar el reporte", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    /**
+     * Convierte las coordenadas (Lat/Lon) en una dirección legible por humanos (nombre de calle).
+     */
+    private fun obtenerDireccion(location: Location): String {
+        val geocoder = android.location.Geocoder(requireContext(), Locale.getDefault())
+        var addressText = "Ubicación: ${location.latitude}, ${location.longitude}" // Valor por defecto
+
+        try {
+            // Pedimos la dirección para la Lat/Lon
+            val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+
+            if (addresses != null && addresses.isNotEmpty()) {
+                val address = addresses[0]
+
+                // Intentamos obtener el nombre de la calle
+                val street = address.thoroughfare ?: address.featureName
+                val number = address.subThoroughfare
+
+                addressText = if (street != null) {
+                    if (number != null) "Ubicación: $street #$number" else "Ubicación: $street"
+                } else {
+                    // Si la calle no está disponible, usamos la línea de dirección completa
+                    "Ubicación: ${address.getAddressLine(0) ?: "Dirección no disponible"}"
+                }
+            }
+        } catch (e: Exception) {
+            // Esto captura errores de red o I/O
+            Log.e("CrearReporte", "Error en geocodificación: ${e.message}")
+            // Mantenemos el valor por defecto con coordenadas
+        }
+        return addressText
+    }
+
+    private fun iniciarDistribucion(categoria: String, descripcion: String?, ubicacion: Location, evidenciaUri: String) {
+        val currentUser = auth.currentUser ?: return
+        val db = FirebaseFirestore.getInstance()
+
+        // 1. Obtener chats donde el usuario es miembro
+        db.collection("chats")
+            .whereArrayContains("miembrosUids", currentUser.uid)
+            .get()
+            .addOnSuccessListener { chats ->
+
+                val totalChats = chats.size()
+                if (totalChats == 0) {
+                    finalizarEnvioExitoso()
+                    return@addOnSuccessListener
+                }
+
+                // 2. 🚨 CLAVE: Crear el lote de escritura (WriteBatch)
+                val batch = db.batch()
+
+                val mensajeTexto = "🚨 Reporte: $categoria\nDescripción: ${descripcion ?: "Sin descripción"}\nUbicación: ${ubicacion.latitude}, ${ubicacion.longitude}"
+
+                val mensajeData = hashMapOf(
+                    "texto" to mensajeTexto,
+                    "remitente" to currentUser.uid,
+                    "timestamp" to System.currentTimeMillis(),
+                    "tipo" to (tipoEvidencia ?: "text")
+                )
+                if (evidenciaUri.isNotEmpty()) {
+                    mensajeData["mediaUrl"] = evidenciaUri
+                }
+
+                // 3. Agregar todas las escrituras (mensajes) al lote
+                chats.forEach { chatDoc ->
+                    val chatId = chatDoc.id
+                    val mensajeRef = db.collection("chats").document(chatId).collection("mensajes").document() // Documento nuevo
+                    batch.set(mensajeRef, mensajeData)
+                }
+
+                // 4. Ejecutar el lote de escritura (una única operación de red)
+                batch.commit()
+                    .addOnSuccessListener {
+                        // ✅ El proceso se considera exitoso solo después de que TODOS los chats reciben el mensaje
+                        finalizarEnvioExitoso()
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("CrearReporte", "Error al enviar mensajes por lote: ${e.message}", e)
+                        Toast.makeText(requireContext(), "Error al enviar mensaje a chats", Toast.LENGTH_SHORT).show()
+                        btnEnviar.isEnabled = true // Re-habilitar botón
+                    }
+
+            }
+            .addOnFailureListener { exception ->
+                Log.e("CrearReporte", "Error al obtener chats para distribución: ${exception.message}", exception)
+                Toast.makeText(requireContext(), "Error al obtener chats para distribución", Toast.LENGTH_SHORT).show()
+                btnEnviar.isEnabled = true
+            }
+    }
+
+    private fun finalizarEnvioExitoso() {
+
+        mostrarNotificacionExito(requireContext())
+
+        Toast.makeText(requireContext(), "Reporte enviado exitosamente!", Toast.LENGTH_SHORT).show()
+        btnEnviar.isEnabled = true // ⬅️ Re-habilitar botón
+
+        // Cierre seguro
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+            try {
+                parentFragmentManager.popBackStack()
+            } catch (e: Exception) {
+                Log.e("CrearReporte", "Error al cerrar fragmento de forma segura: ${e.message}")
+            }
+        }, 100)
+    }
+
+    /*private fun enviarMensajeAChats(categoria: String, descripcion: String?, ubicacion: Location, evidenciaUri: String) {
         val currentUser = auth.currentUser ?: return
         val db = FirebaseFirestore.getInstance()
 
@@ -256,21 +415,33 @@ class CrearReporte : Fragment() {
                     "texto" to mensajeTexto,
                     "remitente" to currentUser.uid,
                     "timestamp" to System.currentTimeMillis(),
-                    "tipo" to (tipoEvidencia ?: "text")  // Si hay evidencia, tipo="image" o "video", sino "text"
+                    "tipo" to (tipoEvidencia ?: "text")
                 )
-                if (tipoEvidencia != null) {
-                    mensajeData["mediaUrl"] = evidenciaUri  // Agregar mediaUrl solo si hay evidencia
+                if (evidenciaUri.isNotEmpty()) { // Usamos evidenciaUri que viene de la subida
+                    mensajeData["mediaUrl"] = evidenciaUri
                 }
 
                 chats.forEach { chatDoc ->
                     val chatId = chatDoc.id
                     db.collection("chats").document(chatId).collection("mensajes").add(mensajeData)
                 }
-                Toast.makeText(requireContext(), "Mensaje enviado a ${chats.size()} chats", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Reporte enviado exitosamente!", Toast.LENGTH_SHORT).show()
+
+                // Opcional: Cerrar el fragmento de CrearReporte
+                parentFragmentManager.popBackStack()
+
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    try {
+                        parentFragmentManager.popBackStack()
+                    } catch (e: Exception) {
+                        Log.e("CrearReporte", "Error al cerrar fragmento de forma segura: ${e.message}")
+                    }
+                }, 100) // Esperar 100ms para asegurar la estabilidad
+
             }
             .addOnFailureListener { exception ->
                 Log.e("CrearReporte", "Error al enviar mensaje a chats: ${exception.message}", exception)
                 Toast.makeText(requireContext(), "Error al enviar mensaje a chats", Toast.LENGTH_SHORT).show()
             }
-    }
+    }*/
 }

@@ -13,8 +13,6 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import android.widget.Spinner
 import com.example.seguridadciudadana.R
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -24,6 +22,12 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import android.provider.Settings
+import android.util.Log
+import android.widget.LinearLayout
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.seguridadciudadana.Inicio.ReporteAdapter
+import com.example.seguridadciudadana.Inicio.ReporteZona
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -31,11 +35,14 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
+import android.os.Handler
+import java.util.concurrent.TimeUnit
 
 class MapaFragment : Fragment(), OnMapReadyCallback {
 
@@ -45,16 +52,14 @@ class MapaFragment : Fragment(), OnMapReadyCallback {
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
     private var isFollowingUser = true
+    private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
+    private lateinit var rvReportes: RecyclerView
+    private lateinit var reporteAdapter: ReporteAdapter
+    private val reportesList = mutableListOf<ReporteZona>()
 
-    private lateinit var spinnerFiltroTiempo: Spinner
+    private val handler = Handler(Looper.getMainLooper())
+    private val UPDATE_INTERVAL_MS = 6 * 60 * 60 * 1000L
 
-    private val opcionesFiltro = listOf(
-        "Última hora",
-        "Últimas 12 horas",
-        "Últimas 24 horas",
-        "Últimos 7 días",
-        "Todos los reportes"
-    )
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -69,30 +74,48 @@ class MapaFragment : Fragment(), OnMapReadyCallback {
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        createLocationRequest()
+        val bottomSheet = view.findViewById<LinearLayout>(R.id.bottom_sheet_layout)
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        val peakHeight = resources.getDimensionPixelSize(R.dimen.bottom_sheet_peak_height)
+        bottomSheetBehavior.peekHeight = peakHeight
+        bottomSheetBehavior.isHideable = true
 
-        // 💡 1. Inicializar Spinner
-        spinnerFiltroTiempo = view.findViewById(R.id.spinnerFiltroTiempo) // ASUME que tienes este ID en fragment_mapa.xml
-
-        val adapter =
-            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, opcionesFiltro)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinnerFiltroTiempo.adapter = adapter
-
-        // Seleccionar la opción de "Último Día" por defecto
-        spinnerFiltroTiempo.setSelection(0)
-
-        // 💡 2. Configurar Listener del Spinner
-        spinnerFiltroTiempo.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                // Cuando el usuario selecciona un filtro, recargar los reportes
-                cargarReportesEnMapa(opcionesFiltro[position])
+        bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+                // Puedes agregar lógica aquí si la hoja se expande (STATE_EXPANDED) o colapsa (STATE_COLLAPSED)
+                when (newState) {
+                    BottomSheetBehavior.STATE_EXPANDED -> Log.d("MapaFragment", "Bottom Sheet Expandido")
+                    BottomSheetBehavior.STATE_COLLAPSED -> Log.d("MapaFragment", "Bottom Sheet Colapsado (Estado Normal)")
+                    BottomSheetBehavior.STATE_HIDDEN -> Log.d("MapaFragment", "Bottom Sheet Oculto")
+                    // Otros estados: DRAGGING, SETTLING
+                    else -> {}
+                }
             }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                // No hacer nada si no hay selección
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {
+                // Reacción visual mientras el usuario arrastra la hoja
             }
+        })
+
+        rvReportes = view.findViewById(R.id.rv_reportes_zona)
+        reporteAdapter = ReporteAdapter(reportesList)
+        rvReportes.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = reporteAdapter
+            isNestedScrollingEnabled = true // Clave para que el arrastre funcione con el RecyclerView
         }
+
+        createLocationRequest()
+    }
+    private fun iniciarLogicaMapa() {
+        // 1. Siempre iniciamos las actualizaciones de ubicación
+        startLocationUpdates()
+
+        // 2. Cargamos los reportes la primera vez que se ejecuta o al volver
+        cargarReportesEnMapa()
+
+        // 3. Reiniciamos el ciclo de actualización de 6 horas
+        iniciarActualizacionAutomatica()
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -105,8 +128,7 @@ class MapaFragment : Fragment(), OnMapReadyCallback {
         // Intentar activar la ubicación
         enableMyLocation()
 
-        // 💡 Cargar reportes al iniciar (usa el valor por defecto: "Todos los reportes")
-        cargarReportesEnMapa(opcionesFiltro[0])
+        iniciarLogicaMapa()
 
         map.setOnMarkerClickListener { marker ->
             marker.showInfoWindow() // ✅ Muestra el cuadro con la categoría
@@ -119,6 +141,23 @@ class MapaFragment : Fragment(), OnMapReadyCallback {
                 isFollowingUser = false
             }
         }
+    }
+
+    private val actualizacionRunnable: Runnable = object : Runnable {
+        override fun run() {
+            Log.d("MapaFragment", "Actualizando reportes automáticamente (Últimas 6 horas)...")
+            cargarReportesEnMapa()
+            // Repetir después del intervalo
+            handler.postDelayed(this, UPDATE_INTERVAL_MS)
+        }
+    }
+
+    private fun iniciarActualizacionAutomatica() {
+        handler.postDelayed(actualizacionRunnable, UPDATE_INTERVAL_MS)
+    }
+
+    private fun detenerActualizacionAutomatica() {
+        handler.removeCallbacks(actualizacionRunnable)
     }
 
     private fun createLocationRequest() {
@@ -193,91 +232,175 @@ class MapaFragment : Fragment(), OnMapReadyCallback {
         super.onResume()
         checkLocationEnabled()
         startLocationUpdates()
-        // 💡 Recargar reportes usando el filtro actual (al volver al fragmento)
-        cargarReportesEnMapa(spinnerFiltroTiempo.selectedItem?.toString() ?: opcionesFiltro[0])
+        iniciarActualizacionAutomatica()
     }
 
     override fun onPause() {
         super.onPause()
         // Detener las actualizaciones de ubicación al pausar
         stopLocationUpdates()
+        detenerActualizacionAutomatica()
     }
 
     // Cargar reportes en el mapa
-    private fun cargarReportesEnMapa(filtro: String) {
+    private fun cargarReportesEnMapa() {
 
-        if (!::map.isInitialized || !::spinnerFiltroTiempo.isInitialized) {
-            // Si el mapa O el spinner no están listos, no se puede continuar.
-            // Salimos de la función para evitar el crash.
+        if (!::map.isInitialized) {
+            Log.w("MapaFragment", "Mapa no inicializado. Retrasando carga de reportes.")
             return
         }
 
-        // 1. Limpiar el mapa antes de cargar nuevos reportes
-        map.clear()
-
-        // 2. Determinar el límite de tiempo
-        val tiempoLimite: Timestamp? = when (filtro) {
-            // Usamos las nuevas etiquetas
-            "Última hora" -> getTimestampOffset(-1 * 60 * 60 * 1000L)         // 1 hora
-            "Últimas 12 horas" -> getTimestampOffset(-12 * 60 * 60 * 1000L)   // 12 horas
-            "Últimas 24 horas" -> getTimestampOffset(-24 * 60 * 60 * 1000L)  // 24 horas (1 día)
-            "Últimos 7 días" -> getTimestampOffset(-7 * 24 * 60 * 60 * 1000L) // 7 días
-            else -> null // "Todos los reportes" o valor por defecto
+        // 1. OBTENER LA UBICACIÓN DEL USUARIO
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED) {
+            // No hay permisos, no podemos filtrar por cercanía
+            Log.e("MapaFragment", "Permisos de ubicación no concedidos para filtrar.")
+            // Opcional: puedes cargar todos los reportes aquí si lo deseas, o salir.
+            return
         }
 
-        // 3. Crear la consulta
-        val db = FirebaseFirestore.getInstance()
-        var query = db.collection("reportes").orderBy("timestamp") // ⚠️ Necesario si usas whereGreaterThan
+        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            // Si no se pudo obtener la ubicación (location == null), salimos o cargamos todos.
+            if (location == null) {
+                Log.w("MapaFragment", "Ubicación del usuario no disponible. No se puede filtrar por cercanía.")
+                // Aquí puedes llamar a una función que cargue sin filtro de ubicación si es necesario.
+                return@addOnSuccessListener
+            }
 
-        if (tiempoLimite != null) {
-            query = query.whereGreaterThan("timestamp", tiempoLimite)
-        }
+            // 2. Definir el radio de búsqueda (en metros)
+            val radioMetros = 1000.0 // 1 kilómetro
+            val latUsuario = location.latitude
+            val lonUsuario = location.longitude
 
-        // 4. Ejecutar la consulta
-        query.get()
-            .addOnSuccessListener { result ->
-                for (document in result) {
-                    val geo = document.getGeoPoint("ubicacion")
-                    val categoria = document.getString("categoria") ?: "Sin categoría"
-                    val timestamp = document.getTimestamp("timestamp")
+            // Limpiar el mapa y la lista antes de cargar nuevos reportes
+            map.clear()
+            reportesList.clear()
+            reporteAdapter.notifyDataSetChanged()
 
-                    if (geo != null) {
-                        val posicion = LatLng(geo.latitude, geo.longitude)
+            // 3. Consulta de Firebase (Mantenemos el filtro de 6 horas)
+            val tiempoLimite: Timestamp = getTimestampOffset(-6 * 60 * 60 * 1000L)
+            val db = FirebaseFirestore.getInstance()
 
-                        // 💡 Nuevo: Formatear la fecha/hora
-                        val horaReporte = formatTimestamp(timestamp)
+            db.collection("reportes")
+                .whereGreaterThan("timestamp", tiempoLimite)
+                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .get()
+                .addOnSuccessListener { result ->
 
-                        // Dibujar círculo y marcador
-                        map.addCircle(
-                            CircleOptions()
-                                .center(posicion)
-                                .radius(100.0)
-                                .strokeColor(0xFF4CAF50.toInt())
-                                .fillColor(0x554CAF50)
-                                .strokeWidth(3f)
-                        )
-                        map.addMarker(
-                            MarkerOptions()
-                                .position(posicion)
-                                .title(categoria)
-                                .snippet("Reporte: $horaReporte")
-                                .visible(true)
-                                .icon(null)
-                        )
+                    for (document in result) {
+                        val geo = document.getGeoPoint("ubicacion")
+
+                        if (geo != null) {
+                            // 4. CALCULAR DISTANCIA Y FILTRAR
+                            val distancia = calcularDistancia(latUsuario, lonUsuario, geo.latitude, geo.longitude)
+
+                            if (distancia <= radioMetros) {
+                                // ✅ El reporte está DENTRO del radio de 1km
+                                val direccionReporte = obtenerDireccion(geo.latitude, geo.longitude, requireContext())
+
+                                val categoria = document.getString("categoria") ?: "Sin categoría"
+                                val timestamp = document.getTimestamp("timestamp")
+                                val descripcion = document.getString("descripcion")
+                                val evidenciaUrl = document.getString("evidenciaUrl")
+                                val posicion = LatLng(geo.latitude, geo.longitude)
+
+                                val reporteZona = ReporteZona(
+                                    id = document.id,
+                                    categoria = categoria,
+                                    ubicacion = geo,
+                                    descripcion = descripcion,
+                                    evidenciaUrl = evidenciaUrl,
+                                    timestamp = timestamp,
+                                    direccion = direccionReporte
+                                )
+                                reportesList.add(reporteZona)
+
+                                // 💡 Opcional: Dibujar un círculo en la ubicación del reporte
+                                map.addCircle(
+                                    CircleOptions()
+                                        .center(posicion).radius(100.0)
+                                        .strokeColor(0xFF4CAF50.toInt())
+                                        .fillColor(0x554CAF50)
+                                        .strokeWidth(3f)
+                                )
+
+                                val horaReporte = formatTimestamp(timestamp)
+                                map.addMarker(
+                                    MarkerOptions()
+                                        .position(posicion)
+                                        .title(categoria)
+                                        .snippet("Reporte: $horaReporte")
+                                )
+                            }
+                        }
                     }
+                    // 5. Notificar al adaptador (Solo con los reportes filtrados)
+                    reporteAdapter.notifyDataSetChanged()
+                    Log.d("MapaFragment", "Cargados ${reportesList.size} reportes dentro de ${radioMetros}m.")
+                }
+                .addOnFailureListener {
+                    Log.e("MapaFragment", "Error cargando reportes", it)
+                }
+        }
+    }
+
+    /**
+     * Calcula la distancia en metros entre la ubicación del usuario y el reporte.
+     * Utilizamos un objeto Location temporal para aprovechar la función distanceTo.
+     */
+    private fun calcularDistancia(
+        latUsuario: Double, lonUsuario: Double,
+        latReporte: Double, lonReporte: Double
+    ): Float {
+        val locUsuario = android.location.Location("point A").apply {
+            latitude = latUsuario
+            longitude = lonUsuario
+        }
+        val locReporte = android.location.Location("point B").apply {
+            latitude = latReporte
+            longitude = lonReporte
+        }
+        // distanceTo devuelve la distancia en metros
+        return locUsuario.distanceTo(locReporte)
+    }
+
+    //Obtener la dirección exacta del reporte que fue subido
+    private fun obtenerDireccion(latitud: Double, longitud: Double, context: Context): String {
+        val geocoder = android.location.Geocoder(context, Locale.getDefault())
+        var addressText = "Dirección no disponible"
+
+        try {
+            // Obtenemos una lista de direcciones para las coordenadas
+            val addresses = geocoder.getFromLocation(latitud, longitud, 1)
+
+            if (addresses != null && addresses.isNotEmpty()) {
+                val address = addresses[0]
+
+                // Intentamos obtener el nombre de la calle y el número (si existe)
+                val street = address.thoroughfare ?: address.featureName // featureName es una alternativa común
+                val number = address.subThoroughfare
+
+                addressText = if (street != null) {
+                    if (number != null) "$street #$number" else street
+                } else {
+                    // Si la calle no está disponible, usamos la ubicación más general
+                    address.getAddressLine(0) ?: "Dirección no disponible"
                 }
             }
-            .addOnFailureListener {
-                // Manejo de error de Firestore
-            }
+        } catch (e: Exception) {
+            Log.e("MapaFragment", "Error en geocodificación: ${e.message}")
+            // Si hay error de red o I/O, mantenemos el texto de error
+        }
+        return addressText
     }
 
     //Para formatear el Timestamp a un string legible
     private fun formatTimestamp(timestamp: Timestamp?): String {
         return if (timestamp != null) {
-            // Define el formato que quieres (ej: 06/11/2025 18:02)
             val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-            // Opcional: Si quieres mostrar la hora local del usuario
+            // Mostrar hora local del usuario
             sdf.timeZone = TimeZone.getDefault()
             sdf.format(timestamp.toDate())
         } else {
