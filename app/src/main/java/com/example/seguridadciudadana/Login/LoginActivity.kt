@@ -9,6 +9,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.example.seguridadciudadana.Admin.AdminDashboardActivity
 import com.example.seguridadciudadana.Pin.CreatePinActivity
 import com.example.seguridadciudadana.Pin.UnlockPinActivity
 import com.example.seguridadciudadana.R
@@ -150,17 +151,30 @@ class LoginActivity : AppCompatActivity() {
             }
     }
 
-    // ---------------------- FLUJO SIGUIENTE SEGÚN PIN -----------------------
+    // ---------------------- FLUJO SIGUIENTE SEGÚN PIN Y ROL -----------------------
 
     private fun goToNextStep(userId: String) {
         firestore.collection("usuarios").document(userId).get()
             .addOnSuccessListener { doc ->
-                if (doc.exists() && doc.contains("pin")) {
-                    startActivity(Intent(this, UnlockPinActivity::class.java))
+                if (doc.exists()) {
+                    val rol = doc.getString("rol") ?: "user"
+                    if (rol == "admin") {
+                        // Redirigir a dashboard de admin
+                        startActivity(Intent(this, AdminDashboardActivity::class.java))
+                        finish()
+                    } else {
+                        // Flujo normal: verificar PIN
+                        if (doc.contains("pin")) {
+                            startActivity(Intent(this, UnlockPinActivity::class.java))
+                        } else {
+                            startActivity(Intent(this, CreatePinActivity::class.java))
+                        }
+                        finish()
+                    }
                 } else {
                     startActivity(Intent(this, CreatePinActivity::class.java))
+                    finish()
                 }
-                finish()
             }
             .addOnFailureListener {
                 startActivity(Intent(this, CreatePinActivity::class.java))

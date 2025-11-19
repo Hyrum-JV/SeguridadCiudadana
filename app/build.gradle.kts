@@ -89,4 +89,7 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
     implementation("com.google.android.exoplayer:exoplayer:2.18.1")
+
+
+
 }
