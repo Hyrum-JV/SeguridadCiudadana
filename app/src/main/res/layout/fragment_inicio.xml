@@ -8,6 +8,7 @@
     tools:context=".MainActivity">
 
     <!-- Botón principal SOS -->
+
     <Button
         android:id="@+id/btnSOS"
         android:layout_width="200dp"
