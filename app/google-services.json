@@ -38,6 +38,14 @@
           }
         },
         {
+          "client_id": "269265063761-8kivf68ctrqtqnlu9lrvq923l8678d8a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.seguridadciudadana",
+            "certificate_hash": "5139d06e91c3fea5569da2355a4182a5cd5b2f15"
+          }
+        },
+        {
           "client_id": "269265063761-ikppv2f9ir5cldrjva5vddo9v5g2saqn.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

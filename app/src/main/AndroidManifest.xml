@@ -1,16 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
     <!-- Permisos necesarios -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-
-    <!-- Cámara opcional -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> <!-- Cámara opcional -->
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -25,65 +22,54 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SeguridadCiudadana">
-
+        <activity
+            android:name=".Admin.AdminDashboardActivity"
+            android:exported="false" />
         <!-- Actividades -->
         <activity
             android:name=".CrearChatActivity"
             android:exported="false"
             android:theme="@style/Theme.SeguridadCiudadana" />
-
         <activity
             android:name=".ChatActivity"
             android:exported="false"
             android:theme="@style/Theme.SeguridadCiudadana" />
-
         <activity
             android:name=".Registro.RegisterActivity"
             android:exported="false" />
-
         <activity
             android:name=".Login.LoginActivity"
             android:exported="false" />
-
         <activity
             android:name=".Contactos.EscanearQRActivity"
             android:exported="false" />
-
         <activity
             android:name=".Perfil.MostrarQRActivity"
             android:exported="false" />
-
         <activity
             android:name=".Pin.CreatePinActivity"
             android:exported="false" />
-
         <activity
             android:name=".Pin.UnlockPinActivity"
             android:exported="false" />
-
         <activity
             android:name=".MainActivity"
-            android:exported="false" />
-
-        <!-- Splash (punto de entrada) -->
+            android:exported="false" /> <!-- Splash (punto de entrada) -->
         <activity
             android:name=".Login.SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- Meta-data y servicios -->
+        </activity> <!-- Meta-data y servicios -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDhRd5FtyWJo2Xs9TaCyvVT1_l4O3hFelI" />
-
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
-
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="seguridad_alerts" />
@@ -95,6 +81,6 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-
     </application>
+
 </manifest>

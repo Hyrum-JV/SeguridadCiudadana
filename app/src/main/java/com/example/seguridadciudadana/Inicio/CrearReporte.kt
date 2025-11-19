@@ -272,8 +272,12 @@ class CrearReporte : Fragment() {
             "evidenciaUrl" to evidenciaUri,
             "tipoEvidencia" to (tipoEvidencia ?: "none"),
             "ubicacion" to GeoPoint(ubicacion.latitude, ubicacion.longitude),
-            "timestamp" to Timestamp.now()
+            "timestamp" to Timestamp.now(),
+            "estado" to "pending",  // Nuevo campo: estado inicial
+            "adminComentario" to "",  // Nuevo campo: vacío inicialmente
+            "adminUid" to ""  // Nuevo campo: vacío inicialmente
         )
+
 
         // 1. Guardar en la colección 'reportes' para que aparezca en el mapa
         db.collection("reportes").add(reporteData)

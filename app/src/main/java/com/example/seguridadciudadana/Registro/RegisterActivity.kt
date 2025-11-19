@@ -80,7 +80,8 @@ class RegisterActivity : AppCompatActivity() {
                             "nombre" to nombreCompleto,
                             "telefono" to celular,
                             "correo" to email,
-                            "contraseña" to password
+                            "contraseña" to password,
+                            "rol" to "user" 
                         )
 
                         db.collection("usuarios").document(userId)
@@ -138,7 +139,8 @@ class RegisterActivity : AppCompatActivity() {
                                             "nombre" to (user.displayName ?: ""),
                                             "telefono" to "",
                                             "correo" to (user.email ?: ""),
-                                            "contraseña" to "" // No hay contraseña con Google
+                                            "contraseña" to "", 
+                                            "rol" to "user"  
                                         )
                                         db.collection("usuarios").document(userId).set(userMap)
                                     }

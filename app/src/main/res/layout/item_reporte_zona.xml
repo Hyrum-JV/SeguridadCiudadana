@@ -1,96 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/card_reporte"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
-    android:layout_marginTop="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="4dp"
+    android:padding="16dp"
+    android:background="?attr/selectableItemBackground"
     android:clickable="true"
-    android:focusable="true"
-    android:foreground="?attr/selectableItemBackground">
+    android:focusable="true">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <!-- Categoría -->
+    <TextView
+        android:id="@+id/tv_categoria"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="?attr/colorOnSurface"
+        tools:text="💡 REPORTE: Robo" />
 
-        <LinearLayout
-            android:id="@+id/layout_contenido"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:background="@android:color/white"
-            android:orientation="vertical"
-            android:padding="12dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/layout_imagen_contenedor"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+    <!-- Ubicación -->
+    <TextView
+        android:id="@+id/tv_ubicacion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_categoria"
+        android:layout_marginTop="8dp"
+        android:textSize="14sp"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        tools:text="Ubicación: Calle Principal" />
 
-            <TextView
-                android:id="@+id/tv_categoria"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/black"
-                android:textStyle="bold"
-                tools:text="💡 REPORTE: Robo a mano armada" />
+    <!-- Descripción -->
+    <TextView
+        android:id="@+id/tv_descripcion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_ubicacion"
+        android:layout_marginTop="8dp"
+        android:textSize="14sp"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        tools:text="DESCRIPCIÓN: Detalles del incidente" />
 
-            <TextView
-                android:id="@+id/tv_ubicacion"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="@android:color/darker_gray"
-                android:textSize="12sp"
-                tools:text="UBICACIÓN: Calle Principal 123" />
+    <!-- Hora del reporte -->
+    <TextView
+        android:id="@+id/tv_hora_reporte"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_descripcion"
+        android:layout_marginTop="8dp"
+        android:textSize="12sp"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        tools:text="Hace 2 horas" />
 
-            <TextView
-                android:id="@+id/tv_descripcion"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:maxLines="2"
-                android:ellipsize="end"
-                android:textColor="#388E3C"
-                android:textSize="12sp"
-                android:textStyle="italic"
-                android:visibility="visible"
-                tools:text="DESCRIPCIÓN: Aquí habrá una descripción de 20 o 50 caracteres." />
+    <!-- Contenedor de imagen de evidencia -->
+    <FrameLayout
+        android:id="@+id/layout_imagen_contenedor"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_below="@id/tv_hora_reporte"
+        android:layout_marginTop="8dp"
+        android:background="#E0E0E0"
+        android:visibility="gone"
+        tools:visibility="visible">
 
-            <TextView
-                android:id="@+id/tv_hora_reporte"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="#757575"
-                android:textSize="10sp"
-                tools:text="Hace 5 minutos" />
+        <ImageView
+            android:id="@+id/img_evidencia"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            tools:src="@drawable/ic_placeholder" />
 
-        </LinearLayout>
+    </FrameLayout>
 
-        <FrameLayout
-            android:id="@+id/layout_imagen_contenedor"
-            android:layout_width="100dp"
-            android:layout_height="0dp"
-            android:background="#689F38"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/layout_contenido"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <ImageView
-                android:id="@+id/img_evidencia"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                tools:src="@drawable/ic_camara"
-                android:alpha="0.7"
-                android:contentDescription="Imagen de evidencia" />
-
-
-        </FrameLayout>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</androidx.cardview.widget.CardView>
+</RelativeLayout>
