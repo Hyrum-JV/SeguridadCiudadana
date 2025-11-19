@@ -57,7 +57,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Recibir Notificaciones de Alerta"
+                    android:text="Recibir Notificaciones"
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -96,7 +96,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Compartir Ubicación"
+                        android:text="Ubicación"
                         android:textColor="?attr/colorOnSurface"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -113,7 +113,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="Esto permite que otros usuarios vean tu ubicación en el mapa y recibas alertas geográficas."
+                    android:text="Activa tu ubicación para visualizar los reportes cercanos"
                     android:textColor="?attr/colorOnSurface"
                     android:alpha="0.7"
                     android:textSize="12sp" />
