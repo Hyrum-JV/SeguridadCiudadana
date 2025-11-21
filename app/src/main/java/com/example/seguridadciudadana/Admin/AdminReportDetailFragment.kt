@@ -20,6 +20,15 @@ class AdminReportDetailFragment : Fragment() {
     private var reportId: String? = null
     private var currentReport: ReporteZona? = null
 
+    // Mapeo estadoBD -> texto visible
+    private val estadosMap = mapOf(
+        "pending" to "Pendiente",
+        "police_in_progress" to "Policía verificando",
+        "pending_resolution" to "Pendiente de resolución",
+        "case_resolved" to "Caso resuelto",
+        "false_news" to "Noticia falsa"
+    )
+
     companion object {
         private const val ARG_REPORT_ID = "report_id"
 
@@ -47,7 +56,6 @@ class AdminReportDetailFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_admin_report_detail, container, false)
 
-        // Referencias UI
         val tvCategoria = view.findViewById<TextView>(R.id.tv_categoria_detail)
         val tvDescripcion = view.findViewById<TextView>(R.id.tv_descripcion_detail)
         val tvTimestamp = view.findViewById<TextView>(R.id.tv_timestamp_detail)
@@ -56,45 +64,52 @@ class AdminReportDetailFragment : Fragment() {
         val btnGuardar = view.findViewById<Button>(R.id.btn_guardar_cambios)
         val btnEliminar = view.findViewById<Button>(R.id.btn_eliminar_reporte)
 
-        // Cargar datos del reporte
         reportId?.let { id ->
-            db.collection("reportes").document(id).get().addOnSuccessListener { doc ->
-                if (doc.exists()) {
-                    currentReport = ReporteZona(
-                        id = doc.id,
-                        categoria = doc.getString("categoria") ?: "",
-                        ubicacion = doc.getGeoPoint("ubicacion"),
-                        descripcion = doc.getString("descripcion"),
-                        evidenciaUrl = doc.getString("evidenciaUrl"),
-                        timestamp = doc.getTimestamp("timestamp"),
-                        userId = doc.getString("userId") ?: "",
-                        estado = doc.getString("estado") ?: "pending",
-                        adminComentario = doc.getString("adminComentario") ?: "",
-                        adminUid = doc.getString("adminUid") ?: ""
-                    )
+            db.collection("reportes").document(id).get()
+                .addOnSuccessListener { doc ->
+                    if (doc.exists()) {
+                        currentReport = ReporteZona(
+                            id = doc.id,
+                            categoria = doc.getString("categoria") ?: "",
+                            ubicacion = doc.getGeoPoint("ubicacion"),
+                            descripcion = doc.getString("descripcion"),
+                            evidenciaUrl = doc.getString("evidenciaUrl"),
+                            timestamp = doc.getTimestamp("timestamp"),
+                            userId = doc.getString("userId") ?: "",
+                            estado = doc.getString("estado") ?: "pending",
+                            adminComentario = doc.getString("adminComentario") ?: "",
+                            adminUid = doc.getString("adminUid") ?: ""
+                        )
 
-                    // Mostrar datos
-                    tvCategoria.text = "Categoría: ${currentReport?.categoria}"
-                    tvDescripcion.text = "Descripción: ${currentReport?.descripcion ?: "Sin descripción"}"
-                    tvTimestamp.text = "Fecha: ${currentReport?.timestamp?.toDate()?.toString() ?: "Sin fecha"}"
-                    etComentario.setText(currentReport?.adminComentario)
+                        tvCategoria.text = "Categoría: ${currentReport?.categoria}"
+                        tvDescripcion.text = "Descripción: ${currentReport?.descripcion ?: "Sin descripción"}"
+                        tvTimestamp.text = "Fecha: ${currentReport?.timestamp?.toDate()?.toString() ?: "Sin fecha"}"
+                        etComentario.setText(currentReport?.adminComentario)
 
-                    // Configurar Spinner
-                    val estados = arrayOf("pending", "police_in_progress", "pending_resolution", "case_resolved", "false_news")
-                    val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, estados)
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                    spinnerEstado.adapter = adapter
-                    val currentIndex = estados.indexOf(currentReport?.estado ?: "pending")
-                    if (currentIndex >= 0) spinnerEstado.setSelection(currentIndex)
+                        // Configurar Spinner con textos en español
+                        val adapter = ArrayAdapter(
+                            requireContext(),
+                            android.R.layout.simple_spinner_item,
+                            estadosMap.values.toList()
+                        )
+                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                        spinnerEstado.adapter = adapter
+
+                        val index = estadosMap.keys.indexOf(currentReport?.estado)
+                        if (index >= 0) spinnerEstado.setSelection(index)
+                    }
                 }
-            }.addOnFailureListener {
-                Toast.makeText(requireContext(), "Error al cargar reporte", Toast.LENGTH_SHORT).show()
-            }
+                .addOnFailureListener {
+                    Toast.makeText(requireContext(), "Error al cargar reporte", Toast.LENGTH_SHORT).show()
+                }
         }
 
-        // Guardar cambios
         btnGuardar.setOnClickListener {
-            val nuevoEstado = spinnerEstado.selectedItem.toString()
+            val textoSeleccionado = spinnerEstado.selectedItem.toString()
+
+            // Convertir texto en español -> estadoBD
+            val nuevoEstado = estadosMap.filterValues { it == textoSeleccionado }.keys.first()
+
             val nuevoComentario = etComentario.text.toString()
             val adminUid = auth.currentUser?.uid ?: ""
 
@@ -105,28 +120,30 @@ class AdminReportDetailFragment : Fragment() {
             )
 
             reportId?.let { id ->
-                db.collection("reportes").document(id).update(updates).addOnSuccessListener {
-                    Toast.makeText(requireContext(), "Cambios guardados", Toast.LENGTH_SHORT).show()
-                    // Actualizar lista en Dashboard si es necesario
-                }.addOnFailureListener {
-                    Toast.makeText(requireContext(), "Error al guardar", Toast.LENGTH_SHORT).show()
-                }
+                db.collection("reportes").document(id).update(updates)
+                    .addOnSuccessListener {
+                        Toast.makeText(requireContext(), "Cambios guardados", Toast.LENGTH_SHORT).show()
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(requireContext(), "Error al guardar", Toast.LENGTH_SHORT).show()
+                    }
             }
         }
 
-        // Eliminar reporte
         btnEliminar.setOnClickListener {
             AlertDialog.Builder(requireContext())
                 .setTitle("Eliminar Reporte")
                 .setMessage("¿Estás seguro de eliminar este reporte?")
                 .setPositiveButton("Sí") { _, _ ->
                     reportId?.let { id ->
-                        db.collection("reportes").document(id).delete().addOnSuccessListener {
-                            Toast.makeText(requireContext(), "Reporte eliminado", Toast.LENGTH_SHORT).show()
-                            requireActivity().supportFragmentManager.popBackStack()
-                        }.addOnFailureListener {
-                            Toast.makeText(requireContext(), "Error al eliminar", Toast.LENGTH_SHORT).show()
-                        }
+                        db.collection("reportes").document(id).delete()
+                            .addOnSuccessListener {
+                                Toast.makeText(requireContext(), "Reporte eliminado", Toast.LENGTH_SHORT).show()
+                                requireActivity().supportFragmentManager.popBackStack()
+                            }
+                            .addOnFailureListener {
+                                Toast.makeText(requireContext(), "Error al eliminar", Toast.LENGTH_SHORT).show()
+                            }
                     }
                 }
                 .setNegativeButton("No", null)

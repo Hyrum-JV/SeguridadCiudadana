@@ -25,18 +25,26 @@ class AdminDashboardActivity : AppCompatActivity() {
     private val db = FirebaseFirestore.getInstance()
     private var allReports = listOf<ReporteZona>()
 
+    // 🔵 Mapeo para usar los nombres amigables
+    private val estadosMap = mapOf(
+        "Todos" to "Todos",
+        "Pendiente" to "pending",
+        "Policía verificando" to "police_in_progress",
+        "Pendiente de resolución" to "pending_resolution",
+        "Caso resuelto" to "case_resolved",
+        "Noticia falsa" to "false_news"
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_admin_dashboard)
 
-        // Inicializar vistas
         rvReports = findViewById(R.id.rv_admin_reports)
         rvStats = findViewById(R.id.rv_stats)
         spinnerFilter = findViewById(R.id.spinner_filter_status)
         etSearch = findViewById(R.id.et_search)
         btnRefresh = findViewById(R.id.btn_refresh)
 
-        // Configurar RecyclerView de reportes
         adapter = AdminReportAdapter { report ->
             val fragment = AdminReportDetailFragment.newInstance(report.id)
             supportFragmentManager.beginTransaction()
@@ -47,26 +55,24 @@ class AdminDashboardActivity : AppCompatActivity() {
         rvReports.adapter = adapter
         rvReports.layoutManager = LinearLayoutManager(this)
 
-        // Configurar RecyclerView de stats
         statAdapter = StatAdapter()
         rvStats.adapter = statAdapter
         rvStats.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
 
-        // Configurar filtro
-        val statuses = arrayOf("Todos", "pending", "police_in_progress", "pending_resolution", "case_resolved", "false_news")
-        val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, statuses)
+        // 🔵 Spinner con nombres amigables
+        val estadosVisibles = estadosMap.keys.toTypedArray()
+        val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, estadosVisibles)
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerFilter.adapter = spinnerAdapter
 
         spinnerFilter.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val selectedStatus = statuses[position]
-                filterReports(selectedStatus)
+                val selectedText = estadosVisibles[position]
+                filterReports(selectedText)
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        // Configurar búsqueda
         etSearch.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
                 filterReports(spinnerFilter.selectedItem.toString())
@@ -75,10 +81,7 @@ class AdminDashboardActivity : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
         })
 
-        // Configurar botón refrescar
-        btnRefresh.setOnClickListener {
-            loadReports()
-        }
+        btnRefresh.setOnClickListener { loadReports() }
 
         loadReports()
     }
@@ -99,36 +102,45 @@ class AdminDashboardActivity : AppCompatActivity() {
                     adminUid = doc.getString("adminUid") ?: ""
                 )
             }
+
             filterReports("Todos")
             updateStats()
+
         }.addOnFailureListener { e ->
             Toast.makeText(this, "Error al cargar reportes: ${e.message}", Toast.LENGTH_SHORT).show()
             Log.e("AdminDashboard", "Error loading reports", e)
         }
     }
 
-    private fun filterReports(status: String) {
+    private fun filterReports(statusVisible: String) {
         val searchQuery = etSearch.text.toString().lowercase()
+
+        // Convertimos el texto visible -> estado interno
+        val estadoInterno = estadosMap[statusVisible] ?: "Todos"
+
         val filtered = allReports.filter { report ->
-            val matchesStatus = status == "Todos" || report.estado == status
-            val matchesSearch = searchQuery.isEmpty() ||
-                report.categoria.lowercase().contains(searchQuery) ||
-                (report.descripcion?.lowercase()?.contains(searchQuery) == true)
+            val matchesStatus =
+                estadoInterno == "Todos" || report.estado == estadoInterno
+
+            val matchesSearch =
+                searchQuery.isEmpty() ||
+                        report.categoria.lowercase().contains(searchQuery) ||
+                        (report.descripcion?.lowercase()?.contains(searchQuery) == true)
+
             matchesStatus && matchesSearch
         }
+
         adapter.updateReports(filtered)
     }
 
     private fun updateStats() {
-        val pendingCount = allReports.count { it.estado == "pending" }
-        val inProgressCount = allReports.count { it.estado == "police_in_progress" }
-        val resolvedCount = allReports.count { it.estado == "case_resolved" }
 
         val stats = listOf(
-            StatItem("Pendientes", pendingCount, R.drawable.ic_pending),
-            StatItem("En Progreso", inProgressCount, R.drawable.ic_in_progress),
-            StatItem("Resueltos", resolvedCount, R.drawable.ic_resolved)
+            StatItem("Pendientes", allReports.count { it.estado == "pending" }, R.drawable.ic_pending),
+            StatItem("En Progreso", allReports.count { it.estado == "police_in_progress" }, R.drawable.ic_in_progress),
+            StatItem("Resueltos", allReports.count { it.estado == "case_resolved" }, R.drawable.ic_resolved),
         )
+
         statAdapter.updateStats(stats)
     }
 }
