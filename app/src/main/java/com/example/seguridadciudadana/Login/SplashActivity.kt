@@ -3,6 +3,7 @@ package com.example.seguridadciudadana.Login
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.example.seguridadciudadana.Admin.AdminDashboardActivity
 import com.example.seguridadciudadana.Pin.CreatePinActivity
 import com.example.seguridadciudadana.Pin.UnlockPinActivity
 import com.example.seguridadciudadana.R
@@ -19,7 +20,7 @@ class SplashActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
 
-        FirebaseApp.initializeApp(this) // <-- asegura que Firebase esté listo
+        FirebaseApp.initializeApp(this)
 
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
@@ -29,20 +30,37 @@ class SplashActivity : AppCompatActivity() {
         if (user == null) {
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
-        } else {
-            db.collection("usuarios").document(user.uid).get()
-                .addOnSuccessListener { document ->
-                    if (document.exists() && document.contains("pin")) {
+            return
+        }
+        
+        db.collection("usuarios").document(user.uid).get()
+            .addOnSuccessListener { doc ->
+                if (!doc.exists()) {
+                    auth.signOut()
+                    startActivity(Intent(this, LoginActivity::class.java))
+                    finish()
+                    return@addOnSuccessListener
+                }
+
+                val rol = doc.getString("rol") ?: "user"
+
+                if (rol == "admin") {
+                    // ADMIN NUNCA PASA POR PIN
+                    startActivity(Intent(this, AdminDashboardActivity::class.java))
+                    finish()
+                } else {
+                    // SOLO USERS LLEGAN AQUÍ
+                    if (doc.contains("pin")) {
                         startActivity(Intent(this, UnlockPinActivity::class.java))
                     } else {
                         startActivity(Intent(this, CreatePinActivity::class.java))
                     }
                     finish()
                 }
-                .addOnFailureListener {
-                    startActivity(Intent(this, LoginActivity::class.java))
-                    finish()
-                }
-        }
+            }
+            .addOnFailureListener {
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish()
+            }
     }
 }

@@ -36,14 +36,16 @@ class LoginActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         firestore = FirebaseFirestore.getInstance()
 
-        // Si ya hay un usuario autenticado, pasamos directamente
+        // ==========================
+        // SI YA ESTÁ LOGUEADO → REVISAR ROL DIRECTAMENTE
+        // ==========================
         val currentUser = auth.currentUser
         if (currentUser != null) {
-            goToNextStep(currentUser.uid)
+            verifyRoleFirst(currentUser.uid)
             return
         }
 
-        // Configuración de Google Sign-In
+        // Configuración Google
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
@@ -51,7 +53,7 @@ class LoginActivity : AppCompatActivity() {
 
         googleSignInClient = GoogleSignIn.getClient(this, gso)
 
-        // ----------- VINCULAR OBJETOS DEL LAYOUT -----------
+        // UI
         val btnGoogle = findViewById<SignInButton>(R.id.btnGoogleSignIn)
         val btnIngresar = findViewById<Button>(R.id.btnIngresar)
         val editEmail = findViewById<EditText>(R.id.editEmail)
@@ -59,122 +61,107 @@ class LoginActivity : AppCompatActivity() {
         val txtRegistrarse = findViewById<TextView>(R.id.txtRegistrarse)
         val txtOlvidastePassword = findViewById<TextView>(R.id.txtOlvidastePassword)
 
-        // ----------- LOGIN CON GOOGLE -----------
         btnGoogle.setOnClickListener { signInWithGoogle() }
 
-        // ----------- LOGIN CON CORREO Y CONTRASEÑA -----------
         btnIngresar.setOnClickListener {
             val email = editEmail.text.toString().trim()
             val password = editPassword.text.toString().trim()
-
             if (email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Completa todos los campos", Toast.LENGTH_SHORT).show()
-            } else {
-                loginWithEmail(email, password)
-            }
+            } else loginWithEmail(email, password)
         }
 
-        // ----------- IR A REGISTRO -----------
         txtRegistrarse.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
         }
 
-        // ----------- OLVIDAR CONTRASEÑA (por ahora sin función) -----------
         txtOlvidastePassword.setOnClickListener {
             Toast.makeText(this, "Funcionalidad no implementada aún.", Toast.LENGTH_SHORT).show()
         }
     }
 
-    // ---------------------- LOGIN CON GOOGLE -----------------------
-
+    // ========== GOOGLE SIGN-IN ==========
     private val launcher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-        if (task.isSuccessful) {
-            try {
-                val account = task.getResult(ApiException::class.java)
-                val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            val credential = GoogleAuthProvider.getCredential(account.idToken, null)
 
-                auth.signInWithCredential(credential).addOnCompleteListener { authResult ->
-                    if (authResult.isSuccessful) {
-                        val user = auth.currentUser
-                        user?.let { checkIfUserExists(it.uid) }
-                    } else {
-                        Toast.makeText(this, "Error al iniciar sesión con Google", Toast.LENGTH_SHORT).show()
-                    }
+            auth.signInWithCredential(credential).addOnCompleteListener { authResult ->
+                if (authResult.isSuccessful) {
+                    val user = auth.currentUser
+                    user?.let { verifyRoleFirst(it.uid) }
+                } else {
+                    Toast.makeText(this, "Error al iniciar sesión con Google", Toast.LENGTH_SHORT).show()
                 }
-            } catch (e: ApiException) {
-                Log.e("LoginActivity", "Google Sign-In error: ${e.message}")
-                Toast.makeText(this, "Error al conectar con Google", Toast.LENGTH_SHORT).show()
             }
+        } catch (e: Exception) {
+            Log.e("LoginActivity", "Google Sign-In error: ${e.message}")
+            Toast.makeText(this, "Error al conectar con Google", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun signInWithGoogle() {
-        val signInIntent = googleSignInClient.signInIntent
-        launcher.launch(signInIntent)
+        launcher.launch(googleSignInClient.signInIntent)
     }
 
-    // ---------------------- LOGIN CON CORREO Y CONTRASEÑA -----------------------
-
+    // ========== LOGIN EMAIL ==========
     private fun loginWithEmail(email: String, password: String) {
         auth.signInWithEmailAndPassword(email, password)
-            .addOnSuccessListener { result ->
-                val user = result.user
-                if (user != null) {
-                    checkIfUserExists(user.uid)
-                } else {
-                    Toast.makeText(this, "Usuario no encontrado", Toast.LENGTH_SHORT).show()
-                }
+            .addOnSuccessListener {
+                val user = it.user
+                if (user != null) verifyRoleFirst(user.uid)
             }
             .addOnFailureListener {
                 Toast.makeText(this, "Correo o contraseña incorrectos", Toast.LENGTH_SHORT).show()
             }
     }
 
-    // ---------------------- VERIFICACIÓN EN FIRESTORE -----------------------
-
-    private fun checkIfUserExists(uid: String) {
+    // ===========================================
+    //     🔥 PASO MÁS IMPORTANTE
+    //     PRIMERO VERIFICAMOS EL ROL
+    // ===========================================
+    private fun verifyRoleFirst(uid: String) {
         firestore.collection("usuarios").document(uid).get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    goToNextStep(uid)
-                } else {
+            .addOnSuccessListener { doc ->
+                if (!doc.exists()) {
+                    // Usuario no registrado
                     FirebaseAuth.getInstance().signOut()
                     googleSignInClient.signOut()
-                    Toast.makeText(this, "Tu cuenta no está registrada. Regístrate primero.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Tu cuenta no está registrada.", Toast.LENGTH_LONG).show()
+                    return@addOnSuccessListener
+                }
+
+                val rol = doc.getString("rol") ?: "user"
+
+                if (rol == "admin") {
+                    // ADMIN NO PASA POR PIN JAMÁS
+                    startActivity(Intent(this, AdminDashboardActivity::class.java))
+                    finish()
+                } else {
+                    // USER → recién verificamos si tiene PIN
+                    checkPin(uid)
                 }
             }
             .addOnFailureListener {
-                Toast.makeText(this, "Error al verificar usuario.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Error al verificar rol.", Toast.LENGTH_SHORT).show()
             }
     }
 
-    // ---------------------- FLUJO SIGUIENTE SEGÚN PIN Y ROL -----------------------
-
-    private fun goToNextStep(userId: String) {
-        firestore.collection("usuarios").document(userId).get()
+    // ===========================================
+    // SOLO PARA USUARIOS NORMALES
+    // ===========================================
+    private fun checkPin(uid: String) {
+        firestore.collection("usuarios").document(uid).get()
             .addOnSuccessListener { doc ->
-                if (doc.exists()) {
-                    val rol = doc.getString("rol") ?: "user"
-                    if (rol == "admin") {
-                        // Redirigir a dashboard de admin
-                        startActivity(Intent(this, AdminDashboardActivity::class.java))
-                        finish()
-                    } else {
-                        // Flujo normal: verificar PIN
-                        if (doc.contains("pin")) {
-                            startActivity(Intent(this, UnlockPinActivity::class.java))
-                        } else {
-                            startActivity(Intent(this, CreatePinActivity::class.java))
-                        }
-                        finish()
-                    }
+                if (doc.exists() && doc.contains("pin")) {
+                    startActivity(Intent(this, UnlockPinActivity::class.java))
                 } else {
                     startActivity(Intent(this, CreatePinActivity::class.java))
-                    finish()
                 }
+                finish()
             }
             .addOnFailureListener {
                 startActivity(Intent(this, CreatePinActivity::class.java))
