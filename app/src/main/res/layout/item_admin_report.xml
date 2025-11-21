@@ -1,100 +1,200 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="6dp"
-    android:background="@color/background_light_gray"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
-    android:padding="12dp">
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp">
 
-
-    <View
-        android:id="@+id/v_urgency_bar"
-        android:layout_width="4dp"
-        android:layout_height="match_parent"
-        android:layout_alignParentStart="true"
-        android:background="#FF0000"
-        android:visibility="gone"
-        tools:visibility="visible" />
-
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:orientation="vertical">
+        android:padding="16dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+        <!-- Barra de urgencia lateral -->
+        <View
+            android:id="@+id/v_urgency_bar"
+            android:layout_width="4dp"
+            android:layout_height="0dp"
+            android:layout_marginEnd="12dp"
+            android:background="#FF5252"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="visible" />
 
-            <ImageView
-                android:id="@+id/iv_status_icon"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:contentDescription="Ícono de estado"
-                android:src="@drawable/ic_status_pending"
-                app:tint="?attr/colorPrimary" />
+        <!-- Ícono de estado -->
+        <ImageView
+            android:id="@+id/iv_status_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/circle_background"
+            android:contentDescription="Estado"
+            android:padding="8dp"
+            android:src="@drawable/ic_status_pending"
+            app:layout_constraintStart_toEndOf="@id/v_urgency_bar"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="?attr/colorPrimary" />
 
-            <TextView
-                android:id="@+id/tv_categoria"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="12dp"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="?attr/colorOnSurface"
-                tools:text="Categoría: Robo" />
-
-            <!-- Botón de acción rápida -->
-            <ImageButton
-                android:id="@+id/btn_quick_action"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginStart="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Acción rápida"
-                android:src="@drawable/ic_more_vert"
-                app:tint="?attr/colorOnSurfaceVariant" />
-
-        </LinearLayout>
-
+        <!-- Categoría y timestamp en la parte superior -->
         <TextView
-            android:id="@+id/tv_estado"
-            android:layout_width="match_parent"
+            android:id="@+id/tv_categoria"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textSize="14sp"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            tools:text="Estado: En progreso" />
-
-        <!-- Descripción corta -->
-        <TextView
-            android:id="@+id/tv_descripcion_corta"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textSize="12sp"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            tools:text="Descripción: Incidente en la calle principal..." />
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/btn_quick_action"
+            app:layout_constraintStart_toEndOf="@id/iv_status_icon"
+            app:layout_constraintTop_toTopOf="@id/iv_status_icon"
+            tools:text="Robo" />
 
         <TextView
             android:id="@+id/tv_timestamp"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
             android:layout_marginTop="2dp"
-            android:textSize="12sp"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textColor="?attr/colorOnSurfaceVariant"
-            tools:text="Fecha: 18 Nov 2025, 10:00" />
+            android:textSize="12sp"
+            app:layout_constraintEnd_toStartOf="@id/btn_quick_action"
+            app:layout_constraintStart_toEndOf="@id/iv_status_icon"
+            app:layout_constraintTop_toBottomOf="@id/tv_categoria"
+            tools:text="18 Nov, 10:00 AM" />
 
-    </LinearLayout>
+        <!-- Botón de acción rápida -->
+        <ImageButton
+            android:id="@+id/btn_quick_action"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Más opciones"
+            android:src="@drawable/ic_more_vert"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="?attr/colorOnSurfaceVariant" />
 
-</RelativeLayout>
+        <!-- Descripción del reporte -->
+        <TextView
+            android:id="@+id/tv_descripcion_corta"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:ellipsize="end"
+            android:lineSpacingExtra="2dp"
+            android:maxLines="2"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/iv_status_icon"
+            app:layout_constraintTop_toBottomOf="@id/iv_status_icon"
+            tools:text="Se reportó un robo en la calle principal cerca del centro comercial. El sospechoso escapó en motocicleta." />
+
+        <!-- Chip de estado con color -->
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_estado"
+            style="@style/Widget.Material3.Chip.Assist"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_marginTop="12dp"
+            android:clickable="false"
+            android:text="Pendiente"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            app:chipBackgroundColor="#FF9800"
+            app:chipIconTint="@android:color/white"
+            app:chipStrokeWidth="0dp"
+            app:layout_constraintStart_toStartOf="@id/iv_status_icon"
+            app:layout_constraintTop_toBottomOf="@id/tv_descripcion_corta"
+            tools:chipBackgroundColor="#FF9800" />
+
+        <!-- Badge de prioridad (opcional) -->
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_priority"
+            style="@style/Widget.Material3.Chip.Assist"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:clickable="false"
+            android:text="Alta"
+            android:textSize="11sp"
+            android:visibility="gone"
+            app:chipStrokeWidth="1dp"
+            app:layout_constraintBottom_toBottomOf="@id/chip_estado"
+            app:layout_constraintStart_toEndOf="@id/chip_estado"
+            app:layout_constraintTop_toTopOf="@id/chip_estado"
+            tools:visibility="visible" />
+
+        <!-- Información adicional en línea -->
+        <LinearLayout
+            android:id="@+id/ll_metadata"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/iv_status_icon"
+            app:layout_constraintTop_toBottomOf="@id/chip_estado">
+
+            <!-- Ubicación -->
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:contentDescription="Ubicación"
+                android:src="@drawable/ic_location"
+                app:tint="?attr/colorOnSurfaceVariant" />
+
+            <TextView
+                android:id="@+id/tv_location"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="12sp"
+                tools:text="Centro, Trujillo" />
+
+            <!-- Usuario reportante -->
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_marginStart="12dp"
+                android:contentDescription="Usuario"
+                android:src="@drawable/ic_person"
+                app:tint="?attr/colorOnSurfaceVariant" />
+
+            <TextView
+                android:id="@+id/tv_reporter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="12sp"
+                tools:text="Juan P." />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

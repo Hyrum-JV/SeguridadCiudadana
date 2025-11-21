@@ -1,146 +1,130 @@
 package com.example.seguridadciudadana.Admin
 
+import android.annotation.SuppressLint
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
-import android.util.Log
 import android.view.View
-import android.widget.*
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.seguridadciudadana.Inicio.ReporteZona
 import com.example.seguridadciudadana.R
-import com.google.firebase.firestore.FirebaseFirestore
+import com.example.seguridadciudadana.databinding.ActivityAdminDashboardBinding
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 class AdminDashboardActivity : AppCompatActivity() {
 
-    private lateinit var rvReports: RecyclerView
-    private lateinit var rvStats: RecyclerView
-    private lateinit var spinnerFilter: Spinner
-    private lateinit var etSearch: EditText
-    private lateinit var btnRefresh: Button
-    private lateinit var adapter: AdminReportAdapter
-    private lateinit var statAdapter: StatAdapter
-    private val db = FirebaseFirestore.getInstance()
-    private var allReports = listOf<ReporteZona>()
+    private lateinit var binding: ActivityAdminDashboardBinding
+    private val db = Firebase.firestore
 
-    // 🔵 Mapeo para usar los nombres amigables
-    private val estadosMap = mapOf(
+    private lateinit var adapter: AdminReportAdapter
+    private var listaReportes: MutableList<ReporteZona> = mutableListOf()
+
+    // Mapa: clave = valor real en Firestore, valor = lo mostrado en el spinner
+    private val estadosMap = linkedMapOf(
         "Todos" to "Todos",
-        "Pendiente" to "pending",
-        "Policía verificando" to "police_in_progress",
-        "Pendiente de resolución" to "pending_resolution",
-        "Caso resuelto" to "case_resolved",
-        "Noticia falsa" to "false_news"
+        "pending" to "Pendiente",
+        "police_in_progress" to "Policía verificando",
+        "pending_resolution" to "Pendiente de resolución",
+        "case_resolved" to "Caso resuelto",
+        "false_news" to "Noticia falsa"
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_admin_dashboard)
+        binding = ActivityAdminDashboardBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        rvReports = findViewById(R.id.rv_admin_reports)
-        rvStats = findViewById(R.id.rv_stats)
-        spinnerFilter = findViewById(R.id.spinner_filter_status)
-        etSearch = findViewById(R.id.et_search)
-        btnRefresh = findViewById(R.id.btn_refresh)
+        iniciarRecycler()
+        iniciarSpinner()
+        cargarReportes()
 
-        adapter = AdminReportAdapter { report ->
-            val fragment = AdminReportDetailFragment.newInstance(report.id)
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.admin_container, fragment)
-                .addToBackStack(null)
-                .commit()
+        binding.btnRefresh.setOnClickListener { cargarReportes() }
+
+        binding.etSearch.setOnEditorActionListener { _, _, _ ->
+            aplicarFiltros()
+            true
         }
-        rvReports.adapter = adapter
-        rvReports.layoutManager = LinearLayoutManager(this)
 
-        statAdapter = StatAdapter()
-        rvStats.adapter = statAdapter
-        rvStats.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        binding.spinnerFilterStatus.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                    aplicarFiltros()
+                }
+                override fun onNothingSelected(parent: AdapterView<*>) {}
+            }
+    }
 
-        // 🔵 Spinner con nombres amigables
-        val estadosVisibles = estadosMap.keys.toTypedArray()
-        val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, estadosVisibles)
+    private fun iniciarRecycler() {
+        // Aqui pasamos el callback que ABRE el fragment de detalle
+        adapter = AdminReportAdapter { reporte ->
+            openReportDetail(reporte)
+        }
+        binding.rvAdminReports.layoutManager = LinearLayoutManager(this)
+        binding.rvAdminReports.adapter = adapter
+    }
+
+    private fun iniciarSpinner() {
+        val listaEstados = estadosMap.values.toList()
+        val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, listaEstados)
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinnerFilter.adapter = spinnerAdapter
-
-        spinnerFilter.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val selectedText = estadosVisibles[position]
-                filterReports(selectedText)
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-
-        etSearch.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                filterReports(spinnerFilter.selectedItem.toString())
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-        })
-
-        btnRefresh.setOnClickListener { loadReports() }
-
-        loadReports()
+        binding.spinnerFilterStatus.adapter = spinnerAdapter
     }
 
-    private fun loadReports() {
-        db.collection("reportes").get().addOnSuccessListener { result ->
-            allReports = result.documents.map { doc ->
-                ReporteZona(
-                    id = doc.id,
-                    categoria = doc.getString("categoria") ?: "",
-                    ubicacion = doc.getGeoPoint("ubicacion"),
-                    descripcion = doc.getString("descripcion"),
-                    evidenciaUrl = doc.getString("evidenciaUrl"),
-                    timestamp = doc.getTimestamp("timestamp"),
-                    userId = doc.getString("userId") ?: "",
-                    estado = doc.getString("estado") ?: "pending",
-                    adminComentario = doc.getString("adminComentario") ?: "",
-                    adminUid = doc.getString("adminUid") ?: ""
+    @SuppressLint("NotifyDataSetChanged")
+    private fun cargarReportes() {
+        db.collection("reportes")
+            .get()
+            .addOnSuccessListener { snap ->
+                listaReportes.clear()
+                listaReportes.addAll(
+                    snap.documents.mapNotNull { d ->
+                        d.toObject(ReporteZona::class.java)?.copy(id = d.id)
+                    }
                 )
+                aplicarFiltros()
             }
-
-            filterReports("Todos")
-            updateStats()
-
-        }.addOnFailureListener { e ->
-            Toast.makeText(this, "Error al cargar reportes: ${e.message}", Toast.LENGTH_SHORT).show()
-            Log.e("AdminDashboard", "Error loading reports", e)
-        }
+            .addOnFailureListener {
+                Toast.makeText(this, "Error al cargar reportes", Toast.LENGTH_SHORT).show()
+            }
     }
 
-    private fun filterReports(statusVisible: String) {
-        val searchQuery = etSearch.text.toString().lowercase()
+    @SuppressLint("NotifyDataSetChanged")
+    private fun aplicarFiltros() {
+        var filtrados = listaReportes.toList()
 
-        // Convertimos el texto visible -> estado interno
-        val estadoInterno = estadosMap[statusVisible] ?: "Todos"
-
-        val filtered = allReports.filter { report ->
-            val matchesStatus =
-                estadoInterno == "Todos" || report.estado == estadoInterno
-
-            val matchesSearch =
-                searchQuery.isEmpty() ||
-                        report.categoria.lowercase().contains(searchQuery) ||
-                        (report.descripcion?.lowercase()?.contains(searchQuery) == true)
-
-            matchesStatus && matchesSearch
+        // FILTRO POR ESTADO
+        val estadoSeleccionado = binding.spinnerFilterStatus.selectedItem.toString()
+        if (estadoSeleccionado != "Todos") {
+            val estadoFirestore = estadosMap.entries.firstOrNull { it.value == estadoSeleccionado }?.key
+            filtrados = filtrados.filter { it.estado == estadoFirestore }
         }
 
-        adapter.updateReports(filtered)
+        // FILTRO POR BÚSQUEDA
+        val searchText = binding.etSearch.text.toString().trim().lowercase()
+        if (searchText.isNotEmpty()) {
+            filtrados = filtrados.filter {
+                (it.descripcion?.lowercase()?.contains(searchText) == true) ||
+                        (it.categoria?.lowercase()?.contains(searchText) == true)
+            }
+        }
+
+        adapter.updateReports(filtrados)
     }
 
-    private fun updateStats() {
+    private fun openReportDetail(report: ReporteZona) {
+        // Crea el fragment con el id del reporte
+        val fragment = AdminReportDetailFragment.newInstance(report.id)
 
-        val stats = listOf(
-            StatItem("Pendientes", allReports.count { it.estado == "pending" }, R.drawable.ic_pending),
-            StatItem("En Progreso", allReports.count { it.estado == "police_in_progress" }, R.drawable.ic_in_progress),
-            StatItem("Resueltos", allReports.count { it.estado == "case_resolved" }, R.drawable.ic_resolved),
-        )
+        // Mostrar el fragment en el contenedor (admin_container) y mantener en backstack
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.admin_container, fragment)
+            .addToBackStack(null)
+            .commit()
 
-        statAdapter.updateStats(stats)
+        // Asegurarnos que el contenedor sea visible (tu layout ya tiene admin_container)
+        binding.adminContainer.visibility = View.VISIBLE
     }
 }
