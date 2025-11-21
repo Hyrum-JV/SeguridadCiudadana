@@ -4,19 +4,23 @@ import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.Timestamp
 
 data class ReporteZona(
-    val id: String = "",
+    var id: String = "",
     val categoria: String = "",
     val ubicacion: GeoPoint? = null,
     val descripcion: String? = null,
     val evidenciaUrl: String? = null,
     val timestamp: Timestamp? = null,
     val direccion: String? = null,
-    val userId: String = "",  // Nuevo campo: ID del usuario que reportó
-    val estado: String = "pending",  // Nuevo campo: estado del reporte
-    val adminComentario: String = "",  // Nuevo campo: comentario del admin
-    val adminUid: String = ""  // Nuevo campo: UID del admin que actualizó
+    val userId: String = "",
+    val estado: String = "pending",
+    val adminComentario: String = "",
+    val adminUid: String = "",
+
+    // ---------- CAMPOS QUE NECESITA TU ADAPTER ----------
+    val nombre: String? = null,        // Nombre del usuario
+    val prioridad: String? = null,     // Prioridad
+    val urgencia: String? = null       // Urgencia
 ) {
-    // Propiedad para verificar si hay descripción
     val tieneDescripcion: Boolean
         get() = !descripcion.isNullOrEmpty()
 }
