@@ -23,6 +23,7 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
     private lateinit var googleSignInClient: GoogleSignInClient
+    private var rolSeleccionado: String = "user" // Valor por defecto
 
     private val GOOGLE_SIGN_IN = 1001
 
@@ -38,6 +39,9 @@ class RegisterActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
+
+        // Obtener el rol seleccionado desde el Intent
+        rolSeleccionado = intent.getStringExtra("rol") ?: "user"
 
         // Configurar Google Sign-In
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -81,7 +85,7 @@ class RegisterActivity : AppCompatActivity() {
                             "telefono" to celular,
                             "correo" to email,
                             "contraseña" to password,
-                            "rol" to "user" 
+                            "rol" to rolSeleccionado // Usar el rol seleccionado
                         )
 
                         db.collection("usuarios").document(userId)
@@ -139,8 +143,8 @@ class RegisterActivity : AppCompatActivity() {
                                             "nombre" to (user.displayName ?: ""),
                                             "telefono" to "",
                                             "correo" to (user.email ?: ""),
-                                            "contraseña" to "", 
-                                            "rol" to "user"  
+                                            "contraseña" to "",
+                                            "rol" to rolSeleccionado // Usar el rol seleccionado
                                         )
                                         db.collection("usuarios").document(userId).set(userMap)
                                     }
