@@ -254,44 +254,42 @@ class MapaFragment : Fragment(), OnMapReadyCallback, ReporteAdapter.OnReporteCli
     }
 
     // Cargar reportes en el mapa
-    private fun cargarReportesEnMapa() {
-
+ private fun cargarReportesEnMapa() {
         if (!::map.isInitialized) {
             Log.w("MapaFragment", "Mapa no inicializado. Retrasando carga de reportes.")
             return
         }
+        if (!isAdded) {
+            Log.w("MapaFragment", "Fragment no adjunto. Cancelando carga.")
+            return
+        }
+        val safeContext = context ?: return
 
-        // 1. OBTENER LA UBICACIÓN DEL USUARIO
         if (ActivityCompat.checkSelfPermission(
-                requireContext(),
+                safeContext,
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED) {
-            // No hay permisos, no podemos filtrar por cercanía
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             Log.e("MapaFragment", "Permisos de ubicación no concedidos para filtrar.")
-            // Opcional: puedes cargar todos los reportes aquí si lo deseas, o salir.
             return
         }
 
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-            // Si no se pudo obtener la ubicación (location == null), salimos o cargamos todos.
+            if (!isAdded) return@addOnSuccessListener
             if (location == null) {
                 Log.w("MapaFragment", "Ubicación del usuario no disponible. No se puede filtrar por cercanía.")
-                // Aquí puedes llamar a una función que cargue sin filtro de ubicación si es necesario.
                 return@addOnSuccessListener
             }
 
-            // 2. Definir el radio de búsqueda (en metros)
-            val radioMetros = 1000.0 // 1 kilómetro
+            val radioMetros = 1000.0
             val latUsuario = location.latitude
             val lonUsuario = location.longitude
 
-            // Limpiar el mapa y la lista antes de cargar nuevos reportes
             map.clear()
             reportesList.clear()
             reporteAdapter.notifyDataSetChanged()
 
-            // 3. Consulta de Firebase (Mantenemos el filtro de 6 horas)
-            val tiempoLimite: Timestamp = getTimestampOffset(-6 * 60 * 60 * 1000L)
+            val tiempoLimite = getTimestampOffset(-6 * 60 * 60 * 1000L)
             val db = FirebaseFirestore.getInstance()
 
             db.collection("reportes")
@@ -299,60 +297,55 @@ class MapaFragment : Fragment(), OnMapReadyCallback, ReporteAdapter.OnReporteCli
                 .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener { result ->
+                    if (!isAdded) return@addOnSuccessListener
 
                     for (document in result) {
-                        val geo = document.getGeoPoint("ubicacion")
+                        val geo = document.getGeoPoint("ubicacion") ?: continue
+                        val distancia = calcularDistancia(latUsuario, lonUsuario, geo.latitude, geo.longitude)
 
-                        if (geo != null) {
-                            // 4. CALCULAR DISTANCIA Y FILTRAR
-                            val distancia = calcularDistancia(latUsuario, lonUsuario, geo.latitude, geo.longitude)
+                        if (distancia <= radioMetros) {
+                            val direccionReporte = obtenerDireccion(geo.latitude, geo.longitude, safeContext)
+                            val categoria = document.getString("categoria") ?: "Sin categoría"
+                            val timestamp = document.getTimestamp("timestamp")
+                            val descripcion = document.getString("descripcion")
+                            val evidenciaUrl = document.getString("evidenciaUrl")
+                            val posicion = LatLng(geo.latitude, geo.longitude)
 
-                            if (distancia <= radioMetros) {
-                                // ✅ El reporte está DENTRO del radio de 1km
-                                val direccionReporte = obtenerDireccion(geo.latitude, geo.longitude, requireContext())
+                            val reporteZona = ReporteZona(
+                                id = document.id,
+                                categoria = categoria,
+                                ubicacion = geo,
+                                descripcion = descripcion,
+                                evidenciaUrl = evidenciaUrl,
+                                timestamp = timestamp,
+                                direccion = direccionReporte
+                            )
+                            reportesList.add(reporteZona)
 
-                                val categoria = document.getString("categoria") ?: "Sin categoría"
-                                val timestamp = document.getTimestamp("timestamp")
-                                val descripcion = document.getString("descripcion")
-                                val evidenciaUrl = document.getString("evidenciaUrl")
-                                val posicion = LatLng(geo.latitude, geo.longitude)
+                            map.addCircle(
+                                CircleOptions()
+                                    .center(posicion)
+                                    .radius(100.0)
+                                    .strokeColor(0xFF4CAF50.toInt())
+                                    .fillColor(0x554CAF50)
+                                    .strokeWidth(3f)
+                            )
 
-                                val reporteZona = ReporteZona(
-                                    id = document.id,
-                                    categoria = categoria,
-                                    ubicacion = geo,
-                                    descripcion = descripcion,
-                                    evidenciaUrl = evidenciaUrl,
-                                    timestamp = timestamp,
-                                    direccion = direccionReporte
-                                )
-                                reportesList.add(reporteZona)
-
-                                // 💡 Opcional: Dibujar un círculo en la ubicación del reporte
-                                map.addCircle(
-                                    CircleOptions()
-                                        .center(posicion).radius(100.0)
-                                        .strokeColor(0xFF4CAF50.toInt())
-                                        .fillColor(0x554CAF50)
-                                        .strokeWidth(3f)
-                                )
-
-                                val horaReporte = formatTimestamp(timestamp)
-                                map.addMarker(
-                                    MarkerOptions()
-                                        .position(posicion)
-                                        .title(categoria)
-                                        .snippet("Reporte: $horaReporte")
-                                )
-                            }
+                            val horaReporte = formatTimestamp(timestamp)
+                            map.addMarker(
+                                MarkerOptions()
+                                    .position(posicion)
+                                    .title(categoria)
+                                    .snippet("Reporte: $horaReporte")
+                            )
                         }
                     }
-                    // 5. Notificar al adaptador (Solo con los reportes filtrados)
                     reporteAdapter.notifyDataSetChanged()
                     Log.d("MapaFragment", "Cargados ${reportesList.size} reportes dentro de ${radioMetros}m.")
                 }
-                .addOnFailureListener {
-                    Log.e("MapaFragment", "Error cargando reportes", it)
+                .addOnFailureListener { error ->
+                    if (!isAdded) return@addOnFailureListener
+                    Log.e("MapaFragment", "Error cargando reportes", error)
                 }
         }
     }
