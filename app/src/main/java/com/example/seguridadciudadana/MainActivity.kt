@@ -35,6 +35,9 @@ import androidx.core.app.ActivityCompat
 import java.io.File
 import kotlinx.coroutines.tasks.await
 import com.google.firebase.Timestamp
+import android.os.Handler
+import android.os.Looper
+import com.example.seguridadciudadana.Feedback.FeedbackManager
 
 class MainActivity : AppCompatActivity() {
 
@@ -44,6 +47,9 @@ class MainActivity : AppCompatActivity() {
     // Navigation Drawer
     private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var drawerLayout: DrawerLayout
+    
+    // ✅ NUEVO: FeedbackManager
+    private lateinit var feedbackManager: FeedbackManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +68,19 @@ class MainActivity : AppCompatActivity() {
         }
 
         verificarPermisosUbicacion()
+
+        // ✅ NUEVO: Inicializar FeedbackManager
+        feedbackManager = FeedbackManager(this)
+        
+        // ✅ NUEVO: Incrementar contador de uso cada vez que abre la app
+        feedbackManager.incrementUsageCount()
+        
+        // ✅ NUEVO: Mostrar diálogo de feedback después de 3 segundos (si cumple condiciones)
+        Handler(Looper.getMainLooper()).postDelayed({
+            if (feedbackManager.shouldShowFeedbackDialog()) {
+                feedbackManager.showFeedbackDialog()
+            }
+        }, 3000) // 3 segundos de delay para que cargue todo primero
 
         // Configuración BottomNavigation
         val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottom_navigation)
