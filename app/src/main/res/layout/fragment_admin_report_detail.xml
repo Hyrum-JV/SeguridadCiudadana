@@ -65,6 +65,26 @@
                     android:textSize="14sp"
                     tools:text="Fecha: 2023-10-01 12:00" />
 
+                <!-- NUEVO: Ubicación -->
+                <TextView
+                    android:id="@+id/tv_ubicacion_detail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="16sp"
+                    tools:text="Ubicación: -12.04318, -77.02824" />
+
+                <!-- NUEVO: Nombre usuario -->
+                <TextView
+                    android:id="@+id/tv_nombre_usuario"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="16sp"
+                    tools:text="Reportado por: Juan Pérez" />
+
                 <!-- Imagen de evidencia -->
                 <ImageView
                     android:id="@+id/iv_evidencia"
@@ -133,7 +153,7 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Botones de acción -->
+        <!-- Botones -->
         <LinearLayout
             android:id="@+id/ll_buttons"
             android:layout_width="0dp"

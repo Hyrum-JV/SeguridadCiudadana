@@ -5,15 +5,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:scrollbars="vertical">
+    android:padding="30dp"
+    android:scrollbars="vertical"
+    android:background="?android:colorBackground">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="30dp"
-        android:background="#212121">
+        android:layout_height="wrap_content">
 
-        <!-- Título -->
+        <!-- TÍTULO -->
         <TextView
             android:id="@+id/tvTitulo"
             android:layout_width="wrap_content"
@@ -21,43 +21,41 @@
             android:text="Nuevo reporte de incidente"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="#FFFF"
+            android:textColor="?attr/colorOnBackground"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
-        <!-- Categoría -->
+        <!-- SUBTÍTULO -->
         <TextView
             android:id="@+id/tvTipoReporte"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="40dp"
             android:text="Selecciona tipo de reporte"
-            android:textColor="#FFFF"
             android:textSize="16sp"
             android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvTitulo" />
+            android:textColor="?attr/colorOnBackground"
+            app:layout_constraintTop_toBottomOf="@id/tvTitulo"
+            app:layout_constraintStart_toStartOf="parent" />
 
-        <!-- Spinner -->
+        <!-- SPINNER -->
         <Spinner
             android:id="@+id/spinner_categoria"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_marginTop="24dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintTop_toBottomOf="@id/tvTipoReporte"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvTipoReporte" />
+            app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Campo adicional si selecciona "Otro" -->
+        <!-- CAMPO SI SELECCIONA “OTRO” -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/layout_categoria_otro"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:hint="Especifica la categoría"
-            app:hintTextColor="@color/blanco"
-            android:visibility="gone"
             android:layout_marginTop="8dp"
+            android:hint="Especifica la categoría"
+            android:visibility="gone"
             app:layout_constraintTop_toBottomOf="@id/spinner_categoria"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
@@ -66,55 +64,54 @@
                 android:id="@+id/et_categoria_otro"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/blanco" />
+                android:textColor="?attr/colorOnBackground" />
+
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Ubicación -->
+        <!-- UBICACIÓN -->
         <TextView
             android:id="@+id/tv_ubicacion"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="28dp"
             android:text="Ubicación actual: (cargando...)"
-            android:textColor="#757575"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
+            android:textColor="?attr/colorOnBackground"
+            app:layout_constraintTop_toBottomOf="@id/layout_categoria_otro"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/layout_categoria_otro" />
+            app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Adjuntar evidencia -->
+        <!-- BOTÓN SUBIR EVIDENCIA -->
         <Button
             android:id="@+id/btn_adjuntar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:backgroundTint="#BDBDBD"
             android:text="Subir evidencia"
-            android:textColor="#212121"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_ubicacion" />
+            android:backgroundTint="?attr/colorSecondary"
+            android:textColor="?attr/colorOnSecondary"
+            app:layout_constraintTop_toBottomOf="@id/tv_ubicacion"
+            app:layout_constraintStart_toStartOf="parent" />
 
-        <!-- Preview de imagen -->
+        <!-- PREVIEW DE IMAGEN -->
         <ImageView
             android:id="@+id/img_preview"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:layout_marginStart="92dp"
-            android:background="#BDBDBD"
+            android:layout_marginStart="16dp"
+            android:background="?attr/colorSurface"
             android:scaleType="centerCrop"
             android:visibility="gone"
             app:layout_constraintStart_toEndOf="@id/btn_adjuntar"
             app:layout_constraintTop_toTopOf="@id/btn_adjuntar"
-            tools:src="@android:drawable/ic_launcher" />
+            tools:src="@android:drawable/ic_menu_gallery" />
 
-        <!-- Descripción opcional -->
+        <!-- DESCRIPCIÓN -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/descripcionLayout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
             android:hint="¿Quieres agregar más detalles? (opcional)"
-            android:layout_marginTop="70dp"
-            app:hintTextColor="@color/blanco"
             app:layout_constraintTop_toBottomOf="@id/btn_adjuntar"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
@@ -126,23 +123,22 @@
                 android:inputType="textMultiLine"
                 android:maxLines="6"
                 android:minLines="3"
-                android:textColor="#FFFFFF" />
+                android:textColor="?attr/colorOnBackground" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Botón de envío -->
+        <!-- BOTÓN ENVIAR -->
         <Button
             android:id="@+id/btn_enviar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
-            android:backgroundTint="#D32F2F"
             android:text="Enviar reporte"
-            android:textColor="#FFFFFF"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
+            android:backgroundTint="?attr/colorPrimary"
+            android:textColor="?attr/colorOnPrimary"
+            app:layout_constraintTop_toBottomOf="@id/descripcionLayout"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/descripcionLayout" />
+            app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

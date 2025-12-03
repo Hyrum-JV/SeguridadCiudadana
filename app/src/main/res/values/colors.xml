@@ -18,4 +18,8 @@
     <color name="darkBackground_greenish">#1C2A1E</color>  <color name="darkSurface_greenish">#263A29</color>     <color name="white">#FFFFFFFF</color>
     <color name="black">#FF000000</color>
 
+    <color name="estado_pendiente">#FFE066</color>     <!-- Amarillo -->
+    <color name="estado_proceso">#74C0FC</color>       <!-- Azul claro -->
+    <color name="estado_completado">#8CE99A</color>    <!-- Verde -->
+
 </resources>

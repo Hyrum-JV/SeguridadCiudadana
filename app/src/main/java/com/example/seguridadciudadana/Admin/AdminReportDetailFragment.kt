@@ -1,17 +1,16 @@
 package com.example.seguridadciudadana.Admin
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import com.example.seguridadciudadana.Inicio.ReporteZona
 import com.example.seguridadciudadana.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import androidx.appcompat.app.AlertDialog
 
 class AdminReportDetailFragment : Fragment() {
 
@@ -19,6 +18,14 @@ class AdminReportDetailFragment : Fragment() {
     private lateinit var auth: FirebaseAuth
     private var reportId: String? = null
     private var currentReport: ReporteZona? = null
+
+    private val estadosMap = mapOf(
+        "pending" to "Pendiente",
+        "police_in_progress" to "Policía verificando",
+        "pending_resolution" to "Pendiente de resolución",
+        "case_resolved" to "Caso resuelto",
+        "false_news" to "Noticia falsa"
+    )
 
     companion object {
         private const val ARG_REPORT_ID = "report_id"
@@ -45,89 +52,117 @@ class AdminReportDetailFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
         val view = inflater.inflate(R.layout.fragment_admin_report_detail, container, false)
 
-        // Referencias UI
+        // ⚠️ PREVENIR CRASH DEL FragmentManager
+        if (reportId.isNullOrEmpty()) {
+            Toast.makeText(requireContext(), "Error: ID del reporte no recibido", Toast.LENGTH_LONG).show()
+
+            // Ejecutar navegación después que termine la transacción actual
+            view.post {
+                requireActivity().onBackPressedDispatcher.onBackPressed()
+            }
+
+            return view
+        }
+
         val tvCategoria = view.findViewById<TextView>(R.id.tv_categoria_detail)
         val tvDescripcion = view.findViewById<TextView>(R.id.tv_descripcion_detail)
         val tvTimestamp = view.findViewById<TextView>(R.id.tv_timestamp_detail)
+        val tvUbicacion = view.findViewById<TextView>(R.id.tv_ubicacion_detail)
         val spinnerEstado = view.findViewById<Spinner>(R.id.spinner_estado)
         val etComentario = view.findViewById<EditText>(R.id.et_admin_comentario)
+        val tvNombreUsuario = view.findViewById<TextView>(R.id.tv_nombre_usuario)
         val btnGuardar = view.findViewById<Button>(R.id.btn_guardar_cambios)
         val btnEliminar = view.findViewById<Button>(R.id.btn_eliminar_reporte)
 
-        // Cargar datos del reporte
-        reportId?.let { id ->
-            db.collection("reportes").document(id).get().addOnSuccessListener { doc ->
+        // ---------- CARGAR DATOS DEL REPORTE ----------
+        db.collection("reportes").document(reportId!!).get()
+            .addOnSuccessListener { doc ->
                 if (doc.exists()) {
-                    currentReport = ReporteZona(
-                        id = doc.id,
-                        categoria = doc.getString("categoria") ?: "",
-                        ubicacion = doc.getGeoPoint("ubicacion"),
-                        descripcion = doc.getString("descripcion"),
-                        evidenciaUrl = doc.getString("evidenciaUrl"),
-                        timestamp = doc.getTimestamp("timestamp"),
-                        userId = doc.getString("userId") ?: "",
-                        estado = doc.getString("estado") ?: "pending",
-                        adminComentario = doc.getString("adminComentario") ?: "",
-                        adminUid = doc.getString("adminUid") ?: ""
-                    )
 
-                    // Mostrar datos
+                    currentReport = doc.toObject(ReporteZona::class.java)?.copy(id = doc.id)
+
                     tvCategoria.text = "Categoría: ${currentReport?.categoria}"
                     tvDescripcion.text = "Descripción: ${currentReport?.descripcion ?: "Sin descripción"}"
                     tvTimestamp.text = "Fecha: ${currentReport?.timestamp?.toDate()?.toString() ?: "Sin fecha"}"
                     etComentario.setText(currentReport?.adminComentario)
 
-                    // Configurar Spinner
-                    val estados = arrayOf("pending", "police_in_progress", "pending_resolution", "case_resolved", "false_news")
-                    val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, estados)
+                    currentReport?.ubicacion?.let { geo ->
+                        tvUbicacion.text = "Ubicación: ${geo.latitude}, ${geo.longitude}"
+                    }
+
+                    // ---------- CARGAR NOMBRE DEL USUARIO ----------
+                    db.collection("usuarios").document(currentReport!!.userId)
+                        .get()
+                        .addOnSuccessListener { userDoc ->
+                            val nombre = userDoc.getString("nombre") ?: "Usuario desconocido"
+                            tvNombreUsuario.text = "Reportado por: $nombre"
+                        }
+
+                    // ---------- CONFIGURAR SPINNER ----------
+                    val adapter = ArrayAdapter(
+                        requireContext(),
+                        android.R.layout.simple_spinner_item,
+                        estadosMap.values.toList()
+                    )
                     adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                     spinnerEstado.adapter = adapter
-                    val currentIndex = estados.indexOf(currentReport?.estado ?: "pending")
-                    if (currentIndex >= 0) spinnerEstado.setSelection(currentIndex)
+
+                    val estadoActual = estadosMap[currentReport?.estado]
+                    val index = estadosMap.values.indexOf(estadoActual)
+                    if (index >= 0) spinnerEstado.setSelection(index)
                 }
-            }.addOnFailureListener {
+            }
+            .addOnFailureListener {
                 Toast.makeText(requireContext(), "Error al cargar reporte", Toast.LENGTH_SHORT).show()
             }
-        }
 
-        // Guardar cambios
+
+        // ---------- BOTÓN GUARDAR ----------
         btnGuardar.setOnClickListener {
-            val nuevoEstado = spinnerEstado.selectedItem.toString()
+            if (currentReport == null) return@setOnClickListener
+
+            val textoSeleccionado = spinnerEstado.selectedItem.toString()
+            val nuevoEstado = estadosMap.filterValues { it == textoSeleccionado }.keys.first()
             val nuevoComentario = etComentario.text.toString()
             val adminUid = auth.currentUser?.uid ?: ""
 
-            val updates = hashMapOf<String, Any>(
+            val updates = mapOf(
                 "estado" to nuevoEstado,
                 "adminComentario" to nuevoComentario,
                 "adminUid" to adminUid
             )
 
-            reportId?.let { id ->
-                db.collection("reportes").document(id).update(updates).addOnSuccessListener {
+            db.collection("reportes").document(reportId!!).update(updates)
+                .addOnSuccessListener {
                     Toast.makeText(requireContext(), "Cambios guardados", Toast.LENGTH_SHORT).show()
-                    // Actualizar lista en Dashboard si es necesario
-                }.addOnFailureListener {
+                }
+                .addOnFailureListener {
                     Toast.makeText(requireContext(), "Error al guardar", Toast.LENGTH_SHORT).show()
                 }
-            }
         }
 
-        // Eliminar reporte
+
+        // ---------- BOTÓN ELIMINAR ----------
         btnEliminar.setOnClickListener {
             AlertDialog.Builder(requireContext())
                 .setTitle("Eliminar Reporte")
                 .setMessage("¿Estás seguro de eliminar este reporte?")
                 .setPositiveButton("Sí") { _, _ ->
-                    reportId?.let { id ->
-                        db.collection("reportes").document(id).delete().addOnSuccessListener {
+                    db.collection("reportes").document(reportId!!).delete()
+                        .addOnSuccessListener {
                             Toast.makeText(requireContext(), "Reporte eliminado", Toast.LENGTH_SHORT).show()
-                            requireActivity().supportFragmentManager.popBackStack()
-                        }.addOnFailureListener {
+
+                            // Evitar crash de transacciones
+                            view.post {
+                                requireActivity().supportFragmentManager.popBackStack()
+                            }
+                        }
+                        .addOnFailureListener {
                             Toast.makeText(requireContext(), "Error al eliminar", Toast.LENGTH_SHORT).show()
                         }
-                    }
                 }
                 .setNegativeButton("No", null)
                 .show()
