@@ -12,14 +12,14 @@ data class ReporteZona(
     val timestamp: Timestamp? = null,
     val direccion: String? = null,
     val userId: String = "",
-    val estado: String = "pending",
+    val estado: String? = "Pendiente", 
     val adminComentario: String = "",
     val adminUid: String = "",
 
     // ---------- CAMPOS QUE NECESITA TU ADAPTER ----------
-    val nombre: String? = null,        // Nombre del usuario
-    val prioridad: String? = null,     // Prioridad
-    val urgencia: String? = null       // Urgencia
+    val nombre: String? = null,
+    val prioridad: String? = null,
+    val urgencia: String? = null
 ) {
     val tieneDescripcion: Boolean
         get() = !descripcion.isNullOrEmpty()

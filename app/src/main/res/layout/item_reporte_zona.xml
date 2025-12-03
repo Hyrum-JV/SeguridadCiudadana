@@ -1,75 +1,131 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="16dp"
-    android:background="?attr/selectableItemBackground"
-    android:clickable="true"
-    android:focusable="true">
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
 
-    <!-- Categoría -->
-    <TextView
-        android:id="@+id/tv_categoria"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:textColor="?attr/colorOnSurface"
-        tools:text="💡 REPORTE: Robo" />
+        android:padding="16dp">
 
-    <!-- Ubicación -->
-    <TextView
-        android:id="@+id/tv_ubicacion"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/tv_categoria"
-        android:layout_marginTop="8dp"
-        android:textSize="14sp"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        tools:text="Ubicación: Calle Principal" />
+        <!-- Imagen de evidencia (izquierda) -->
+        <FrameLayout
+            android:id="@+id/layout_imagen_contenedor"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:background="#F0F0F0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-    <!-- Descripción -->
-    <TextView
-        android:id="@+id/tv_descripcion"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/tv_ubicacion"
-        android:layout_marginTop="8dp"
-        android:textSize="14sp"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        tools:text="DESCRIPCIÓN: Detalles del incidente" />
+            <ImageView
+                android:id="@+id/img_evidencia"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:contentDescription="Evidencia"
+                tools:src="@drawable/ic_image_placeholder" />
+        </FrameLayout>
 
-    <!-- Hora del reporte -->
-    <TextView
-        android:id="@+id/tv_hora_reporte"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/tv_descripcion"
-        android:layout_marginTop="8dp"
-        android:textSize="12sp"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        tools:text="Hace 2 horas" />
+        <!-- Contenido principal -->
+        <LinearLayout
+            android:id="@+id/layout_contenido"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:orientation="vertical"
+            app:layout_constraintStart_toEndOf="@id/layout_imagen_contenedor"
+            app:layout_constraintEnd_toStartOf="@id/btn_ver_detalle"
+            app:layout_constraintTop_toTopOf="parent">
 
-    <!-- Contenedor de imagen de evidencia -->
-    <FrameLayout
-        android:id="@+id/layout_imagen_contenedor"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_below="@id/tv_hora_reporte"
-        android:layout_marginTop="8dp"
-        android:background="#E0E0E0"
-        android:visibility="gone"
-        tools:visibility="visible">
+            <!-- Categoría -->
+            <TextView
+                android:id="@+id/tv_categoria"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:textSize="15sp"
+                android:textColor="?attr/colorPrimary"
+                android:maxLines="2"
+                android:ellipsize="end"
+                tools:text="💡 REPORTE: Robo a mano armada" />
 
+            <!-- Ubicación -->
+            <TextView
+                android:id="@+id/tv_ubicacion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textSize="13sp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:drawablePadding="4dp"
+                app:drawableStartCompat="@drawable/ic_location"
+                app:drawableTint="?attr/colorOnSurfaceVariant"
+                tools:text="Amphitheatre Parkway #1600" />
+
+            <!-- Descripción (opcional) -->
+            <TextView
+                android:id="@+id/tv_descripcion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textSize="12sp"
+                android:textColor="?attr/colorOnSurface"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:visibility="gone"
+                tools:visibility="visible"
+                tools:text="DESCRIPCIÓN: Individuo sospechoso..." />
+
+            <!-- Hora -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:src="@drawable/ic_calendar"
+                    app:tint="?attr/colorOnSurfaceVariant" />
+
+                <TextView
+                    android:id="@+id/tv_hora_reporte"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:textSize="11sp"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    tools:text="Hace 12 minutos" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Botón para ver detalles (derecha) -->
         <ImageView
-            android:id="@+id/img_evidencia"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            tools:src="@drawable/ic_placeholder" />
+            android:id="@+id/btn_ver_detalle"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="8dp"
+            android:src="@drawable/ic_arrow_forward"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Ver detalles"
+            app:tint="?attr/colorPrimary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
-    </FrameLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-</RelativeLayout>
+</com.google.android.material.card.MaterialCardView>

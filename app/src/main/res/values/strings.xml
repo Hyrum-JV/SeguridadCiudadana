@@ -54,5 +54,9 @@
         libero vel nunc consequat, quis tincidunt nisl eleifend. Cras bibendum enim a justo luctus
         vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
     </string>
+    <string name="desc_search_icon">Icono de búsqueda</string>
+    <string name="desc_refresh_reports">Actualizar reportes</string>
+    <string name="desc_filter_icon">Icono de filtro</string>
+    <string name="desc_admin_actions">Acciones de administrador</string>
 
 </resources>

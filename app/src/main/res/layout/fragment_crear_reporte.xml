@@ -48,7 +48,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- CAMPO SI SELECCIONA “OTRO” -->
+        <!-- CAMPO SI SELECCIONA "OTRO" -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/layout_categoria_otro"
             android:layout_width="0dp"
@@ -74,7 +74,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="28dp"
-            android:text="Ubicación actual: (cargando...)"
+            android:text="Ubicación: Amphitheatre Parkway #1600"
             android:textColor="?attr/colorOnBackground"
             app:layout_constraintTop_toBottomOf="@id/layout_categoria_otro"
             app:layout_constraintStart_toStartOf="parent"
@@ -92,27 +92,40 @@
             app:layout_constraintTop_toBottomOf="@id/tv_ubicacion"
             app:layout_constraintStart_toStartOf="parent" />
 
-        <!-- PREVIEW DE IMAGEN -->
-        <ImageView
-            android:id="@+id/img_preview"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:layout_marginStart="16dp"
-            android:background="?attr/colorSurface"
-            android:scaleType="centerCrop"
+        <!-- PREVIEW DE IMAGEN (Centrado y debajo del botón) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_preview"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_marginTop="16dp"
             android:visibility="gone"
-            app:layout_constraintStart_toEndOf="@id/btn_adjuntar"
-            app:layout_constraintTop_toTopOf="@id/btn_adjuntar"
-            tools:src="@android:drawable/ic_menu_gallery" />
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="#E0E0E0"
+            app:layout_constraintTop_toBottomOf="@id/btn_adjuntar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:visibility="visible">
+
+            <ImageView
+                android:id="@+id/img_preview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:contentDescription="Vista previa de evidencia"
+                tools:src="@drawable/ic_image_placeholder" />
+
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- DESCRIPCIÓN -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/descripcionLayout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="24dp"
             android:hint="¿Quieres agregar más detalles? (opcional)"
-            app:layout_constraintTop_toBottomOf="@id/btn_adjuntar"
+            app:layout_constraintTop_toBottomOf="@id/card_preview"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
@@ -133,12 +146,14 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
+            android:layout_marginBottom="16dp"
             android:text="Enviar reporte"
             android:backgroundTint="?attr/colorPrimary"
             android:textColor="?attr/colorOnPrimary"
             app:layout_constraintTop_toBottomOf="@id/descripcionLayout"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
