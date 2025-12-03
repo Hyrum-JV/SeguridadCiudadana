@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="20dp"
+    android:layout_margin="0dp"
     android:background="@android:color/white"
     app:cardCornerRadius="20dp"
     app:cardElevation="12dp">
@@ -172,6 +172,62 @@
                     android:ellipsize="end"
                     tools:text="Av. España 1234" />
             </LinearLayout>
+
+            <!-- Comentario del Administrador -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_admin_comentario"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="2dp"
+                app:strokeColor="#1976D2"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:background="#F5F9FF">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_admin"
+                            app:tint="#1976D2" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="Comentario de la Policía Nacional"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="#1976D2" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tv_admin_comentario"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:textColor="#212121"
+                        android:lineSpacingExtra="4dp"
+                        tools:text="La noticia es falsa, evitar reportar incidentes" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
 
