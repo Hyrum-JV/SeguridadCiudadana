@@ -20,16 +20,17 @@ class AdminDashboardActivity : AppCompatActivity() {
     private val db = Firebase.firestore
 
     private lateinit var adapter: AdminReportAdapter
+    private lateinit var statsAdapter: StatAdapter
+
     private var listaReportes: MutableList<ReporteZona> = mutableListOf()
 
-    // Mapa: clave = valor real en Firestore, valor = lo mostrado en el spinner
     private val estadosMap = linkedMapOf(
         "Todos" to "Todos",
-        "pending" to "Pendiente",
-        "police_in_progress" to "Policía verificando",
-        "pending_resolution" to "Pendiente de resolución",
-        "case_resolved" to "Caso resuelto",
-        "false_news" to "Noticia falsa"
+        "Pendiente" to "Pendiente",
+        "Policía verificando" to "Policía verificando",
+        "Pendiente de resolución" to "Pendiente de resolución",
+        "Caso resuelto" to "Caso resuelto",
+        "Noticia falsa" to "Noticia falsa"
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,6 +38,7 @@ class AdminDashboardActivity : AppCompatActivity() {
         binding = ActivityAdminDashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        configurarRvStats()
         iniciarRecycler()
         iniciarSpinner()
         cargarReportes()
@@ -50,15 +52,41 @@ class AdminDashboardActivity : AppCompatActivity() {
 
         binding.spinnerFilterStatus.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                override fun onItemSelected(
+                    parent: AdapterView<*>,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
                     aplicarFiltros()
                 }
+
                 override fun onNothingSelected(parent: AdapterView<*>) {}
             }
     }
 
+    private fun configurarRvStats() {
+        statsAdapter = StatAdapter()
+        binding.rvStats.apply {
+            layoutManager = LinearLayoutManager(
+                this@AdminDashboardActivity,
+                LinearLayoutManager.HORIZONTAL,
+                false
+            )
+            adapter = statsAdapter
+            setHasFixedSize(true)
+        }
+
+        statsAdapter.updateStats(
+            listOf(
+                StatItem("Pendientes", 0, R.drawable.ic_pending),
+                StatItem("Revisados", 0, R.drawable.ic_resolved),
+                StatItem("Críticos", 0, R.drawable.ic_warning)
+            )
+        )
+    }
+
     private fun iniciarRecycler() {
-        // Aqui pasamos el callback que ABRE el fragment de detalle
         adapter = AdminReportAdapter { reporte ->
             openReportDetail(reporte)
         }
@@ -68,7 +96,8 @@ class AdminDashboardActivity : AppCompatActivity() {
 
     private fun iniciarSpinner() {
         val listaEstados = estadosMap.values.toList()
-        val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, listaEstados)
+        val spinnerAdapter =
+            ArrayAdapter(this, android.R.layout.simple_spinner_item, listaEstados)
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerFilterStatus.adapter = spinnerAdapter
     }
@@ -95,19 +124,16 @@ class AdminDashboardActivity : AppCompatActivity() {
     private fun aplicarFiltros() {
         var filtrados = listaReportes.toList()
 
-        // FILTRO POR ESTADO
         val estadoSeleccionado = binding.spinnerFilterStatus.selectedItem.toString()
         if (estadoSeleccionado != "Todos") {
-            val estadoFirestore = estadosMap.entries.firstOrNull { it.value == estadoSeleccionado }?.key
-            filtrados = filtrados.filter { it.estado == estadoFirestore }
+            filtrados = filtrados.filter { it.estado == estadoSeleccionado }
         }
 
-        // FILTRO POR BÚSQUEDA
         val searchText = binding.etSearch.text.toString().trim().lowercase()
         if (searchText.isNotEmpty()) {
             filtrados = filtrados.filter {
                 (it.descripcion?.lowercase()?.contains(searchText) == true) ||
-                        (it.categoria?.lowercase()?.contains(searchText) == true)
+                    (it.categoria?.lowercase()?.contains(searchText) == true)
             }
         }
 
@@ -115,16 +141,13 @@ class AdminDashboardActivity : AppCompatActivity() {
     }
 
     private fun openReportDetail(report: ReporteZona) {
-        // Crea el fragment con el id del reporte
         val fragment = AdminReportDetailFragment.newInstance(report.id)
 
-        // Mostrar el fragment en el contenedor (admin_container) y mantener en backstack
         supportFragmentManager.beginTransaction()
             .replace(R.id.admin_container, fragment)
             .addToBackStack(null)
             .commit()
 
-        // Asegurarnos que el contenedor sea visible (tu layout ya tiene admin_container)
         binding.adminContainer.visibility = View.VISIBLE
     }
 }

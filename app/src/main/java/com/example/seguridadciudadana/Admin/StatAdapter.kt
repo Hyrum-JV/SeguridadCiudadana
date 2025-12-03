@@ -21,7 +21,8 @@ class StatAdapter : RecyclerView.Adapter<StatAdapter.StatViewHolder>() {
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StatViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_stat_card, parent, false)
+        val view =
+            LayoutInflater.from(parent.context).inflate(R.layout.item_stat_card, parent, false)
         return StatViewHolder(view)
     }
 

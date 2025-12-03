@@ -273,9 +273,9 @@ class CrearReporte : Fragment() {
             "tipoEvidencia" to (tipoEvidencia ?: "none"),
             "ubicacion" to GeoPoint(ubicacion.latitude, ubicacion.longitude),
             "timestamp" to Timestamp.now(),
-            "estado" to "pending",  // Nuevo campo: estado inicial
-            "adminComentario" to "",  // Nuevo campo: vacío inicialmente
-            "adminUid" to ""  // Nuevo campo: vacío inicialmente
+            "estado" to "Pendiente", 
+            "adminComentario" to "",
+            "adminUid" to ""
         )
 
 
