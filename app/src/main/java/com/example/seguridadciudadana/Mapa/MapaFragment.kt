@@ -7,38 +7,37 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Bundle
+import android.os.Handler
 import android.os.Looper
-import androidx.core.app.ActivityCompat
-import androidx.fragment.app.Fragment
+import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.TextView
-import com.example.seguridadciudadana.R
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import android.provider.Settings
-import android.util.Log
 import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.core.app.ActivityCompat
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.seguridadciudadana.Inicio.ReporteAdapter
 import com.example.seguridadciudadana.Inicio.ReporteZona
+import com.example.seguridadciudadana.R
 import com.google.android.gms.location.*
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.chip.Chip
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.*
-import android.os.Handler
 
 class MapaFragment : Fragment(), OnMapReadyCallback, ReporteAdapter.OnReporteClickListener {
 
@@ -47,34 +46,37 @@ class MapaFragment : Fragment(), OnMapReadyCallback, ReporteAdapter.OnReporteCli
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
     private var isFollowingUser = true
+
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
     private lateinit var rvReportes: RecyclerView
     private lateinit var reporteAdapter: ReporteAdapter
     private val reportesList = mutableListOf<ReporteZona>()
+
     private val handler = Handler(Looper.getMainLooper())
     private val UPDATE_INTERVAL_MS = 6 * 60 * 60 * 1000L
-    
+
     private val markerReporteMap = mutableMapOf<Marker, ReporteZona>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
         return inflater.inflate(R.layout.fragment_mapa, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
         val bottomSheet = view.findViewById<LinearLayout>(R.id.bottom_sheet_layout)
-        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
-        bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
-        val peakHeight = resources.getDimensionPixelSize(R.dimen.bottom_sheet_peak_height)
-        bottomSheetBehavior.peekHeight = peakHeight
-        bottomSheetBehavior.isHideable = true
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet).apply {
+            state = BottomSheetBehavior.STATE_COLLAPSED
+            peekHeight = resources.getDimensionPixelSize(R.dimen.bottom_sheet_peak_height)
+            isHideable = true
+        }
 
         rvReportes = view.findViewById(R.id.rv_reportes_zona)
         reporteAdapter = ReporteAdapter(reportesList, this)
@@ -95,7 +97,6 @@ class MapaFragment : Fragment(), OnMapReadyCallback, ReporteAdapter.OnReporteCli
 
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
-
         val trujillo = LatLng(-8.11599, -79.02998)
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(trujillo, 13f))
 
@@ -103,8 +104,7 @@ class MapaFragment : Fragment(), OnMapReadyCallback, ReporteAdapter.OnReporteCli
         iniciarLogicaMapa()
 
         map.setOnMarkerClickListener { marker ->
-            val reporte = markerReporteMap[marker]
-            if (reporte != null) {
+            markerReporteMap[marker]?.let {
                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.position, 16f))
             }
             true
@@ -117,41 +117,41 @@ class MapaFragment : Fragment(), OnMapReadyCallback, ReporteAdapter.OnReporteCli
         }
     }
 
-    // ✅ Implementar la interfaz del adapter
     override fun onReporteClicked(lat: Double, lon: Double) {
         val latLng = LatLng(lat, lon)
         map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16f))
-
         if (bottomSheetBehavior.state != BottomSheetBehavior.STATE_COLLAPSED) {
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
         }
     }
 
-    // ✅ Nuevo método para mostrar detalles
     override fun onVerDetalleClicked(reporte: ReporteZona) {
         mostrarDialogoDetalle(reporte)
     }
 
     private fun mostrarDialogoDetalle(reporte: ReporteZona) {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_reporte_detalle, null)
-        
+        val dialogView = layoutInflater.inflate(R.layout.bottom_sheet_reporte_detalle, null)
+
         val tvCategoria = dialogView.findViewById<TextView>(R.id.tv_dialog_categoria)
         val chipEstado = dialogView.findViewById<Chip>(R.id.chip_dialog_estado)
+        val cardEvidencia = dialogView.findViewById<MaterialCardView>(R.id.card_dialog_evidencia)
         val ivEvidencia = dialogView.findViewById<ImageView>(R.id.iv_dialog_evidencia)
         val tvDescripcion = dialogView.findViewById<TextView>(R.id.tv_dialog_descripcion)
         val tvFecha = dialogView.findViewById<TextView>(R.id.tv_dialog_fecha)
         val tvUbicacion = dialogView.findViewById<TextView>(R.id.tv_dialog_ubicacion)
+        val cardAdminComentario = dialogView.findViewById<MaterialCardView>(R.id.card_admin_comentario)
+        val tvAdminComentario = dialogView.findViewById<TextView>(R.id.tv_admin_comentario)
 
         tvCategoria.text = reporte.categoria
         tvDescripcion.text = reporte.descripcion ?: "Sin descripción adicional"
         tvUbicacion.text = reporte.direccion ?: "Ubicación desconocida"
-        
+
         val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
         tvFecha.text = reporte.timestamp?.toDate()?.let { sdf.format(it) } ?: "Sin fecha"
 
         val estado = reporte.estado?.lowercase() ?: "pendiente"
         chipEstado.text = reporte.estado ?: "Pendiente"
-        
+
         when (estado) {
             "pendiente" -> {
                 chipEstado.setChipBackgroundColorResource(R.color.estado_pendiente)
@@ -169,25 +169,35 @@ class MapaFragment : Fragment(), OnMapReadyCallback, ReporteAdapter.OnReporteCli
                 chipEstado.setChipBackgroundColorResource(R.color.estado_falso)
                 chipEstado.setTextColor(resources.getColor(android.R.color.white, null))
             }
+            else -> {
+                chipEstado.setChipBackgroundColorResource(R.color.gray)
+                chipEstado.setTextColor(resources.getColor(android.R.color.white, null))
+            }
         }
 
         if (!reporte.evidenciaUrl.isNullOrEmpty()) {
-            ivEvidencia.visibility = View.VISIBLE
+            cardEvidencia.visibility = View.VISIBLE
             Glide.with(requireContext())
                 .load(reporte.evidenciaUrl)
                 .placeholder(R.drawable.ic_image_placeholder)
+                .error(R.drawable.ic_image_placeholder)
                 .into(ivEvidencia)
         } else {
-            ivEvidencia.visibility = View.GONE
+            cardEvidencia.visibility = View.GONE
         }
 
-        val dialog = AlertDialog.Builder(requireContext())
+        if (!reporte.adminComentario.isNullOrEmpty()) {
+            cardAdminComentario.visibility = View.VISIBLE
+            tvAdminComentario.text = reporte.adminComentario
+        } else {
+            cardAdminComentario.visibility = View.GONE
+        }
+
+        AlertDialog.Builder(requireContext())
             .setView(dialogView)
             .setPositiveButton("Cerrar", null)
             .create()
-
-        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        dialog.show()
+            .show()
     }
 
     private fun obtenerColorEstado(estado: String?): Pair<Int, Int> {
@@ -200,7 +210,7 @@ class MapaFragment : Fragment(), OnMapReadyCallback, ReporteAdapter.OnReporteCli
         }
     }
 
-    private val actualizacionRunnable: Runnable = object : Runnable {
+    private val actualizacionRunnable = object : Runnable {
         override fun run() {
             Log.d("MapaFragment", "Actualizando reportes automáticamente...")
             cargarReportesEnMapa()
@@ -220,7 +230,7 @@ class MapaFragment : Fragment(), OnMapReadyCallback, ReporteAdapter.OnReporteCli
         locationRequest = LocationRequest.create().apply {
             interval = 5000
             fastestInterval = 2500
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+            priority = Priority.PRIORITY_HIGH_ACCURACY
         }
 
         locationCallback = object : LocationCallback() {
@@ -237,9 +247,7 @@ class MapaFragment : Fragment(), OnMapReadyCallback, ReporteAdapter.OnReporteCli
 
     private fun checkLocationEnabled() {
         val locationManager = requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        val isEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-
-        if (!isEnabled) {
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             AlertDialog.Builder(requireContext())
                 .setTitle("Ubicación desactivada")
                 .setMessage("Por favor activa tu GPS para mostrar tu ubicación en el mapa.")
@@ -265,8 +273,8 @@ class MapaFragment : Fragment(), OnMapReadyCallback, ReporteAdapter.OnReporteCli
             )
             if (shouldRecenter) {
                 fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                    if (location != null) {
-                        val latLng = LatLng(location.latitude, location.longitude)
+                    location?.let {
+                        val latLng = LatLng(it.latitude, it.longitude)
                         map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16f))
                     }
                 }
@@ -295,9 +303,11 @@ class MapaFragment : Fragment(), OnMapReadyCallback, ReporteAdapter.OnReporteCli
         if (!::map.isInitialized || !isAdded) return
         val safeContext = context ?: return
 
-        if (ActivityCompat.checkSelfPermission(safeContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return
-        }
+        if (ActivityCompat.checkSelfPermission(
+                safeContext,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) return
 
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
             if (!isAdded || location == null) return@addOnSuccessListener
@@ -323,15 +333,21 @@ class MapaFragment : Fragment(), OnMapReadyCallback, ReporteAdapter.OnReporteCli
 
                     for (document in result) {
                         val geo = document.getGeoPoint("ubicacion") ?: continue
-                        val distancia = calcularDistancia(latUsuario, lonUsuario, geo.latitude, geo.longitude)
+                        val distancia =
+                            calcularDistancia(latUsuario, lonUsuario, geo.latitude, geo.longitude)
 
                         if (distancia <= radioMetros) {
-                            val direccionReporte = obtenerDireccion(geo.latitude, geo.longitude, safeContext)
+                            val direccionReporte =
+                                obtenerDireccion(geo.latitude, geo.longitude, safeContext)
                             val categoria = document.getString("categoria") ?: "Sin categoría"
                             val timestamp = document.getTimestamp("timestamp")
                             val descripcion = document.getString("descripcion")
                             val evidenciaUrl = document.getString("evidenciaUrl")
                             val estado = document.getString("estado")
+                            val adminComentario = document.getString("adminComentario") ?: ""
+                            val adminUid = document.getString("adminUid") ?: ""
+                            val userId = document.getString("userId") ?: ""
+                            val tipoEvidencia = document.getString("tipoEvidencia")
                             val posicion = LatLng(geo.latitude, geo.longitude)
 
                             val reporteZona = ReporteZona(
@@ -342,7 +358,11 @@ class MapaFragment : Fragment(), OnMapReadyCallback, ReporteAdapter.OnReporteCli
                                 evidenciaUrl = evidenciaUrl,
                                 timestamp = timestamp,
                                 direccion = direccionReporte,
-                                estado = estado
+                                userId = userId,
+                                estado = estado,
+                                adminComentario = adminComentario,
+                                adminUid = adminUid,
+                                tipoEvidencia = tipoEvidencia
                             )
                             reportesList.add(reporteZona)
 
@@ -363,10 +383,8 @@ class MapaFragment : Fragment(), OnMapReadyCallback, ReporteAdapter.OnReporteCli
                                     .title(categoria)
                                     .snippet("${estado ?: "Pendiente"} • $horaReporte")
                             )
-                            
-                            if (marker != null) {
-                                markerReporteMap[marker] = reporteZona
-                            }
+
+                            marker?.let { markerReporteMap[it] = reporteZona }
                         }
                     }
                     reporteAdapter.notifyDataSetChanged()
@@ -379,7 +397,12 @@ class MapaFragment : Fragment(), OnMapReadyCallback, ReporteAdapter.OnReporteCli
         }
     }
 
-    private fun calcularDistancia(latUsuario: Double, lonUsuario: Double, latReporte: Double, lonReporte: Double): Float {
+    private fun calcularDistancia(
+        latUsuario: Double,
+        lonUsuario: Double,
+        latReporte: Double,
+        lonReporte: Double
+    ): Float {
         val locUsuario = android.location.Location("point A").apply {
             latitude = latUsuario
             longitude = lonUsuario
@@ -394,18 +417,16 @@ class MapaFragment : Fragment(), OnMapReadyCallback, ReporteAdapter.OnReporteCli
     private fun obtenerDireccion(latitud: Double, longitud: Double, context: Context): String {
         val geocoder = android.location.Geocoder(context, Locale.getDefault())
         var addressText = "Dirección no disponible"
-
         try {
             val addresses = geocoder.getFromLocation(latitud, longitud, 1)
-            if (addresses != null && addresses.isNotEmpty()) {
+            if (!addresses.isNullOrEmpty()) {
                 val address = addresses[0]
                 val street = address.thoroughfare ?: address.featureName
                 val number = address.subThoroughfare
-
-                addressText = if (street != null) {
-                    if (number != null) "$street #$number" else street
-                } else {
-                    address.getAddressLine(0) ?: "Dirección no disponible"
+                addressText = when {
+                    street != null && number != null -> "$street #$number"
+                    street != null -> street
+                    else -> address.getAddressLine(0) ?: "Dirección no disponible"
                 }
             }
         } catch (e: Exception) {
@@ -431,7 +452,11 @@ class MapaFragment : Fragment(), OnMapReadyCallback, ReporteAdapter.OnReporteCli
     }
 
     private fun enableMyLocation() {
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1001)
             return
         }
@@ -439,7 +464,11 @@ class MapaFragment : Fragment(), OnMapReadyCallback, ReporteAdapter.OnReporteCli
         startLocationUpdates()
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 1001 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             enableMyLocation()
