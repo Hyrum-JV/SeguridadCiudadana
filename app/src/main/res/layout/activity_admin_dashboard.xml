@@ -156,15 +156,31 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- FAB ACCIONES -->
+    <!-- FAB VER MAPA DE INCIDENTES -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_admin_actions"
+        android:id="@+id/fab_open_map"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:contentDescription="@string/desc_admin_actions"
+        android:contentDescription="Ver mapa de incidentes"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@drawable/ic_more_vert" />
+        app:srcCompat="@drawable/ic_map"
+        app:backgroundTint="?attr/colorPrimary"
+        app:tint="@android:color/white" />
+
+    <!-- FAB VER PERFIL DE ADMINISTRADOR -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_profile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:contentDescription="Ver perfil de administrador"
+        app:layout_constraintBottom_toTopOf="@id/fab_open_map"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@drawable/ic_admin"
+        app:backgroundTint="#00796B"
+        app:tint="@android:color/white"
+        app:fabSize="normal" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

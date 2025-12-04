@@ -199,7 +199,6 @@ class AdminReportDetailFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Ocultar el container cuando se cierra el fragment
-        requireActivity().findViewById<View>(R.id.admin_container)?.visibility = View.GONE
+        // La visibilidad del container se maneja en el listener del Activity
     }
 }
