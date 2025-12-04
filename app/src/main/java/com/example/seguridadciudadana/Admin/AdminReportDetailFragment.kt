@@ -25,6 +25,9 @@ class AdminReportDetailFragment : Fragment() {
     private var reportId: String? = null
     private var currentReport: ReporteZona? = null
 
+    // Estados finales (caso cerrado)
+    private val estadosFinales = listOf("Caso resuelto", "Noticia falsa")
+
     private val estadosMap = mapOf(
         "Pendiente" to "Pendiente",
         "Policía verificando" to "Policía verificando",
@@ -82,6 +85,8 @@ class AdminReportDetailFragment : Fragment() {
         val etComentario = view.findViewById<TextInputEditText>(R.id.et_admin_comentario)
         val btnGuardar = view.findViewById<Button>(R.id.btn_guardar_cambios)
         val btnEliminar = view.findViewById<Button>(R.id.btn_eliminar_reporte)
+        val bannerCasoCerrado = view.findViewById<LinearLayout>(R.id.banner_caso_cerrado)
+        val tvBannerMensaje = view.findViewById<TextView>(R.id.tv_banner_mensaje)
 
         // Configurar FAB de retroceso
         fabBack.setOnClickListener {
@@ -145,25 +150,62 @@ class AdminReportDetailFragment : Fragment() {
                 )
                 spinnerEstado.setAdapter(adapter)
                 spinnerEstado.setText(estadoActual, false)
+
+                // Verificar si el caso está cerrado (estado final)
+                val casoCerrado = estadoActual in estadosFinales
+                configurarUISegunEstado(
+                    casoCerrado = casoCerrado,
+                    estadoActual = estadoActual,
+                    spinnerEstado = spinnerEstado,
+                    etComentario = etComentario,
+                    btnGuardar = btnGuardar,
+                    btnEliminar = btnEliminar,
+                    bannerCasoCerrado = bannerCasoCerrado,
+                    tvBannerMensaje = tvBannerMensaje,
+                    view = view
+                )
             }
 
         // Botón Guardar
         btnGuardar.setOnClickListener {
             if (currentReport == null) return@setOnClickListener
 
+            val estadoActual = currentReport?.estado ?: "Pendiente"
             val nuevoEstado = spinnerEstado.text.toString()
+            
+            // Verificar si el caso está cerrado y se intenta modificar
+            if (estadoActual in estadosFinales && nuevoEstado in estadosFinales) {
+                Toast.makeText(
+                    requireContext(), 
+                    "⚠️ Este caso ya está cerrado. Use 'Reabrir caso' para modificarlo.", 
+                    Toast.LENGTH_LONG
+                ).show()
+                return@setOnClickListener
+            }
+
             val nuevoComentario = etComentario.text.toString()
             val adminUid = auth.currentUser?.uid ?: ""
 
-            val updates = mapOf(
+            // Si se está cerrando el caso, agregar fecha de cierre
+            val updates = mutableMapOf<String, Any>(
                 "estado" to nuevoEstado,
                 "adminComentario" to nuevoComentario,
                 "adminUid" to adminUid
             )
+            
+            // Si es un estado final, agregar fecha de cierre
+            if (nuevoEstado in estadosFinales) {
+                updates["fechaCierre"] = com.google.firebase.Timestamp.now()
+            }
 
             db.collection("reportes").document(reportId!!).update(updates)
                 .addOnSuccessListener {
-                    Toast.makeText(requireContext(), "✓ Cambios guardados exitosamente", Toast.LENGTH_SHORT).show()
+                    val mensaje = if (nuevoEstado in estadosFinales) {
+                        "✓ Caso cerrado exitosamente"
+                    } else {
+                        "✓ Cambios guardados exitosamente"
+                    }
+                    Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show()
                     view.post {
                         parentFragmentManager.popBackStack()
                     }
@@ -175,26 +217,157 @@ class AdminReportDetailFragment : Fragment() {
 
         // Botón Eliminar
         btnEliminar.setOnClickListener {
-            AlertDialog.Builder(requireContext())
-                .setTitle("Eliminar Reporte")
-                .setMessage("¿Estás seguro de eliminar este reporte? Esta acción no se puede deshacer.")
-                .setPositiveButton("Eliminar") { _, _ ->
-                    db.collection("reportes").document(reportId!!).delete()
-                        .addOnSuccessListener {
-                            Toast.makeText(requireContext(), "Reporte eliminado", Toast.LENGTH_SHORT).show()
-                            view.post {
-                                parentFragmentManager.popBackStack()
-                            }
-                        }
-                        .addOnFailureListener {
-                            Toast.makeText(requireContext(), "Error al eliminar", Toast.LENGTH_SHORT).show()
-                        }
-                }
-                .setNegativeButton("Cancelar", null)
-                .show()
+            mostrarDialogoEliminar(view)
         }
 
         return view
+    }
+
+    private fun configurarUISegunEstado(
+        casoCerrado: Boolean,
+        estadoActual: String,
+        spinnerEstado: AutoCompleteTextView,
+        etComentario: TextInputEditText,
+        btnGuardar: Button,
+        btnEliminar: Button,
+        bannerCasoCerrado: LinearLayout,
+        tvBannerMensaje: TextView,
+        view: View
+    ) {
+        if (casoCerrado) {
+            // Caso cerrado - Bloquear edición
+            spinnerEstado.isEnabled = false
+            etComentario.isEnabled = false
+            
+            // Mostrar banner de caso cerrado
+            bannerCasoCerrado.visibility = View.VISIBLE
+            tvBannerMensaje.text = when (estadoActual) {
+                "Caso resuelto" -> "✅ Este caso fue resuelto y está cerrado"
+                "Noticia falsa" -> "⚠️ Este reporte fue marcado como noticia falsa"
+                else -> "Este caso está cerrado"
+            }
+            
+            // Cambiar texto del botón a "Reabrir Caso"
+            btnGuardar.text = "🔓 Reabrir Caso"
+            btnGuardar.setOnClickListener {
+                mostrarDialogoReabrirCaso(spinnerEstado, etComentario, btnGuardar, bannerCasoCerrado, view)
+            }
+        } else {
+            bannerCasoCerrado.visibility = View.GONE
+        }
+    }
+
+    private fun mostrarDialogoReabrirCaso(
+        spinnerEstado: AutoCompleteTextView,
+        etComentario: TextInputEditText,
+        btnGuardar: Button,
+        bannerCasoCerrado: LinearLayout,
+        view: View
+    ) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("🔓 Reabrir Caso")
+            .setMessage("¿Estás seguro de reabrir este caso? Podrás editar el estado y comentarios nuevamente.\n\nEsto solo debe hacerse si hubo un error en la clasificación anterior.")
+            .setPositiveButton("Reabrir") { _, _ ->
+                // Habilitar edición
+                spinnerEstado.isEnabled = true
+                etComentario.isEnabled = true
+                
+                // Ocultar banner
+                bannerCasoCerrado.visibility = View.GONE
+                
+                // Cambiar estado a "Pendiente de resolución"
+                spinnerEstado.setText("Pendiente de resolución", false)
+                
+                // Restaurar botón normal
+                btnGuardar.text = "Guardar Cambios"
+                btnGuardar.setOnClickListener {
+                    guardarCambiosNormales(spinnerEstado, etComentario, view)
+                }
+                
+                Toast.makeText(requireContext(), "✓ Caso reabierto. Ahora puedes editarlo.", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun guardarCambiosNormales(
+        spinnerEstado: AutoCompleteTextView,
+        etComentario: TextInputEditText,
+        view: View
+    ) {
+        if (currentReport == null) return
+
+        val nuevoEstado = spinnerEstado.text.toString()
+        val nuevoComentario = etComentario.text.toString()
+        val adminUid = auth.currentUser?.uid ?: ""
+
+        val updates = mutableMapOf<String, Any>(
+            "estado" to nuevoEstado,
+            "adminComentario" to nuevoComentario,
+            "adminUid" to adminUid
+        )
+        
+        if (nuevoEstado in estadosFinales) {
+            updates["fechaCierre"] = com.google.firebase.Timestamp.now()
+        }
+
+        db.collection("reportes").document(reportId!!).update(updates)
+            .addOnSuccessListener {
+                val mensaje = if (nuevoEstado in estadosFinales) {
+                    "✓ Caso cerrado exitosamente"
+                } else {
+                    "✓ Cambios guardados exitosamente"
+                }
+                Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show()
+                view.post {
+                    parentFragmentManager.popBackStack()
+                }
+            }
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "Error al guardar cambios", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun mostrarDialogoEliminar(view: View) {
+        val estadoActual = currentReport?.estado ?: "Pendiente"
+        
+        // Diferentes mensajes según el estado
+        val (titulo, mensaje) = when {
+            estadoActual == "Noticia falsa" -> Pair(
+                "🗑️ Eliminar Reporte Falso",
+                "Este reporte fue marcado como NOTICIA FALSA.\n\n¿Deseas eliminarlo permanentemente del sistema?\n\nEsta acción no se puede deshacer."
+            )
+            estadoActual == "Pendiente" -> Pair(
+                "🗑️ Eliminar Reporte Spam",
+                "¿Este reporte es spam o contenido inapropiado?\n\nAl eliminarlo se quitará permanentemente del sistema.\n\nEsta acción no se puede deshacer."
+            )
+            else -> Pair(
+                "⚠️ Eliminar Reporte",
+                "Este reporte tiene estado: $estadoActual\n\n¿Estás seguro de eliminarlo? Solo deberías eliminar reportes falsos o spam.\n\nEsta acción no se puede deshacer."
+            )
+        }
+
+        AlertDialog.Builder(requireContext())
+            .setTitle(titulo)
+            .setMessage(mensaje)
+            .setPositiveButton("Eliminar") { _, _ ->
+                eliminarReporte(view)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun eliminarReporte(view: View) {
+        db.collection("reportes").document(reportId!!).delete()
+            .addOnSuccessListener {
+                Toast.makeText(requireContext(), "🗑️ Reporte eliminado", Toast.LENGTH_SHORT).show()
+                view.post {
+                    parentFragmentManager.popBackStack()
+                }
+            }
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "Error al eliminar", Toast.LENGTH_SHORT).show()
+            }
     }
 
     override fun onDestroyView() {

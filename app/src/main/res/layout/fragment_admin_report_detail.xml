@@ -246,6 +246,7 @@
 
             <!-- CARD: Gestión del Estado -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_gestion"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
@@ -257,6 +258,36 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="20dp">
+
+                    <!-- Banner de caso cerrado (oculto por defecto) -->
+                    <LinearLayout
+                        android:id="@+id/banner_caso_cerrado"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:padding="12dp"
+                        android:background="@drawable/bg_banner_warning"
+                        android:layout_marginBottom="16dp"
+                        android:visibility="gone">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_lock"
+                            app:tint="#FF6B00" />
+
+                        <TextView
+                            android:id="@+id/tv_banner_mensaje"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="12dp"
+                            android:text="Este caso está cerrado y no puede ser editado"
+                            android:textSize="13sp"
+                            android:textColor="#5D4037" />
+
+                    </LinearLayout>
 
                     <TextView
                         android:layout_width="wrap_content"
