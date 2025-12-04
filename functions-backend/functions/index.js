@@ -76,3 +76,141 @@ exports.notificarReporteCercano = functions.firestore
 
         return null;
     });
+
+/**
+ * Notificar a los administradores cuando se crea un nuevo reporte
+ * Envía notificación al topic 'admin_reportes' al que están suscritos los admins
+ */
+exports.notificarAdminsNuevoReporte = functions.firestore
+    .document('reportes/{reporteId}')
+    .onCreate(async (snap, context) => {
+        const nuevoReporte = snap.data();
+        const categoria = nuevoReporte.categoria || 'Reporte';
+        const descripcion = nuevoReporte.descripcion || 'Sin descripción';
+        const reporteId = context.params.reporteId;
+
+        // Crear mensaje para el topic de administradores
+        const message = {
+            topic: 'admin_reportes',
+            notification: {
+                title: `🚨 Nuevo Reporte: ${categoria}`,
+                body: descripcion.length > 100 ? descripcion.substring(0, 100) + '...' : descripcion,
+            },
+            data: {
+                reporteId: reporteId,
+                tipo: 'nuevo_reporte_admin',
+                categoria: categoria,
+                timestamp: Date.now().toString()
+            },
+            android: {
+                priority: 'high',
+                notification: {
+                    channelId: 'admin_new_reports',
+                    priority: 'high',
+                    defaultVibrateTimings: true,
+                    defaultSound: true
+                }
+            }
+        };
+
+        try {
+            const response = await admin.messaging().send(message);
+            console.log('Notificación enviada a admins:', response);
+            return response;
+        } catch (error) {
+            console.error('Error enviando notificación a admins:', error);
+            return null;
+        }
+    });
+
+/**
+ * Notificar al ciudadano cuando su reporte cambia de estado
+ */
+exports.notificarCambioEstadoReporte = functions.firestore
+    .document('reportes/{reporteId}')
+    .onUpdate(async (change, context) => {
+        const antes = change.before.data();
+        const despues = change.after.data();
+        const reporteId = context.params.reporteId;
+
+        // Solo notificar si el estado cambió
+        if (antes.estado === despues.estado) {
+            return null;
+        }
+
+        const userId = despues.userId;
+        if (!userId) {
+            console.log("Reporte sin userId, no se puede notificar");
+            return null;
+        }
+
+        // Obtener el token FCM del usuario
+        const userDoc = await admin.firestore().collection('usuarios').doc(userId).get();
+        if (!userDoc.exists) {
+            console.log("Usuario no encontrado");
+            return null;
+        }
+
+        const userData = userDoc.data();
+        const fcmToken = userData.fcmToken;
+
+        if (!fcmToken) {
+            console.log("Usuario sin token FCM");
+            return null;
+        }
+
+        // Crear mensaje de notificación según el nuevo estado
+        let titulo = '';
+        let mensaje = '';
+
+        switch (despues.estado) {
+            case 'Policía verificando':
+                titulo = '👮 Policía en Camino';
+                mensaje = `Tu reporte "${despues.categoria}" está siendo verificado por la policía.`;
+                break;
+            case 'Pendiente de resolución':
+                titulo = '⏳ Reporte en Proceso';
+                mensaje = `Tu reporte "${despues.categoria}" está pendiente de resolución.`;
+                break;
+            case 'Caso resuelto':
+                titulo = '✅ Caso Resuelto';
+                mensaje = `Tu reporte "${despues.categoria}" ha sido resuelto. ¡Gracias por colaborar!`;
+                break;
+            case 'Noticia falsa':
+                titulo = '❌ Reporte Descartado';
+                mensaje = `Tu reporte "${despues.categoria}" fue marcado como noticia falsa.`;
+                break;
+            default:
+                titulo = '📋 Actualización de Reporte';
+                mensaje = `Tu reporte "${despues.categoria}" cambió a: ${despues.estado}`;
+        }
+
+        const payload = {
+            token: fcmToken,
+            notification: {
+                title: titulo,
+                body: mensaje,
+            },
+            data: {
+                reporteId: reporteId,
+                tipo: 'cambio_estado',
+                nuevoEstado: despues.estado
+            },
+            android: {
+                priority: 'high',
+                notification: {
+                    channelId: 'report_updates',
+                    priority: 'high'
+                }
+            }
+        };
+
+        try {
+            const response = await admin.messaging().send(payload);
+            console.log('Notificación de cambio de estado enviada:', response);
+            return response;
+        } catch (error) {
+            console.error('Error enviando notificación de cambio de estado:', error);
+            return null;
+        }
+    });

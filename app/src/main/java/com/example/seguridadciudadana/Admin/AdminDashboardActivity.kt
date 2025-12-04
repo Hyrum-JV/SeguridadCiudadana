@@ -43,7 +43,17 @@ class AdminDashboardActivity : AppCompatActivity() {
         iniciarSpinner()
         cargarReportes()
 
+        // Iniciar escucha de notificaciones en tiempo real
+        AdminNotificationService.startListening(this)
+        AdminNotificationService.suscribirATopicReportes()
+
         binding.btnRefresh.setOnClickListener { cargarReportes() }
+
+        // Botón para abrir el mapa de incidentes
+        binding.fabOpenMap.setOnClickListener { abrirMapaIncidentes() }
+
+        // Botón para abrir el perfil del administrador
+        binding.fabProfile.setOnClickListener { abrirPerfilAdmin() }
 
         binding.etSearch.setOnEditorActionListener { _, _, _ ->
             aplicarFiltros()
@@ -63,6 +73,43 @@ class AdminDashboardActivity : AppCompatActivity() {
 
                 override fun onNothingSelected(parent: AdapterView<*>) {}
             }
+
+        // Listener para controlar la visibilidad del container cuando cambia el backstack
+        supportFragmentManager.addOnBackStackChangedListener {
+            if (supportFragmentManager.backStackEntryCount == 0) {
+                binding.adminContainer.visibility = View.GONE
+            } else {
+                binding.adminContainer.visibility = View.VISIBLE
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Detener escucha de notificaciones al cerrar la actividad
+        AdminNotificationService.stopListening()
+    }
+
+    private fun abrirPerfilAdmin() {
+        val fragment = AdminProfileFragment.newInstance()
+
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.admin_container, fragment)
+            .addToBackStack(null)
+            .commit()
+
+        binding.adminContainer.visibility = View.VISIBLE
+    }
+
+    private fun abrirMapaIncidentes() {
+        val fragment = AdminMapFragment.newInstance()
+
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.admin_container, fragment)
+            .addToBackStack(null)
+            .commit()
+
+        binding.adminContainer.visibility = View.VISIBLE
     }
 
     private fun configurarRvStats() {
@@ -77,11 +124,12 @@ class AdminDashboardActivity : AppCompatActivity() {
             setHasFixedSize(true)
         }
 
+        // Estadísticas iniciales (se actualizarán al cargar reportes)
         statsAdapter.updateStats(
             listOf(
                 StatItem("Pendientes", 0, R.drawable.ic_pending),
-                StatItem("Revisados", 0, R.drawable.ic_resolved),
-                StatItem("Críticos", 0, R.drawable.ic_warning)
+                StatItem("En Proceso", 0, R.drawable.ic_in_progress),
+                StatItem("Resueltos", 0, R.drawable.ic_resolved)
             )
         )
     }
@@ -113,11 +161,28 @@ class AdminDashboardActivity : AppCompatActivity() {
                         d.toObject(ReporteZona::class.java)?.copy(id = d.id)
                     }
                 )
+                actualizarEstadisticas()
                 aplicarFiltros()
             }
             .addOnFailureListener {
                 Toast.makeText(this, "Error al cargar reportes", Toast.LENGTH_SHORT).show()
             }
+    }
+
+    private fun actualizarEstadisticas() {
+        val pendientes = listaReportes.count { it.estado == "Pendiente" }
+        val enProceso = listaReportes.count { 
+            it.estado == "Policía verificando" || it.estado == "Pendiente de resolución" 
+        }
+        val resueltos = listaReportes.count { it.estado == "Caso resuelto" }
+
+        statsAdapter.updateStats(
+            listOf(
+                StatItem("Pendientes", pendientes, R.drawable.ic_pending),
+                StatItem("En Proceso", enProceso, R.drawable.ic_in_progress),
+                StatItem("Resueltos", resueltos, R.drawable.ic_resolved)
+            )
+        )
     }
 
     @SuppressLint("NotifyDataSetChanged")
