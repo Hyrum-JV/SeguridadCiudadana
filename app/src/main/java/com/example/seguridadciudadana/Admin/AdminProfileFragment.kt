@@ -43,6 +43,7 @@ class AdminProfileFragment : Fragment() {
     private lateinit var switchNotifications: SwitchMaterial
     private lateinit var tvAppVersion: TextView
     private lateinit var btnCerrarSesion: MaterialButton
+    private lateinit var btnEncuesta: MaterialButton
     private lateinit var sliderRadio: Slider
     private lateinit var tvRadioValue: TextView
 
@@ -81,6 +82,7 @@ class AdminProfileFragment : Fragment() {
         switchNotifications = view.findViewById(R.id.switch_notifications)
         tvAppVersion = view.findViewById(R.id.tv_app_version)
         btnCerrarSesion = view.findViewById(R.id.btn_cerrar_sesion)
+        btnEncuesta = view.findViewById(R.id.btn_encuesta)
         sliderRadio = view.findViewById(R.id.slider_radio)
         tvRadioValue = view.findViewById(R.id.tv_radio_value)
 
@@ -117,6 +119,11 @@ class AdminProfileFragment : Fragment() {
         // Botón cerrar sesión
         btnCerrarSesion.setOnClickListener {
             mostrarDialogCerrarSesion()
+        }
+
+        // Botón de encuesta
+        btnEncuesta.setOnClickListener {
+            mostrarEncuesta()
         }
 
         // Slider de radio de cobertura
@@ -263,6 +270,13 @@ class AdminProfileFragment : Fragment() {
             }
             .setNegativeButton("Cancelar", null)
             .show()
+    }
+
+    private fun mostrarEncuesta() {
+        AdminSurveyDialog.newInstance {
+            // Callback cuando se envía la encuesta exitosamente
+            Toast.makeText(context, "🙏 Gracias por tu feedback", Toast.LENGTH_SHORT).show()
+        }.show(childFragmentManager, AdminSurveyDialog.TAG)
     }
 
     private fun cerrarSesion() {
