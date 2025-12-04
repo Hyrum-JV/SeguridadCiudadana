@@ -1,22 +1,30 @@
 package com.example.seguridadciudadana.Admin
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Build
 import android.util.Log
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.seguridadciudadana.R
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 
 /**
  * Servicio para escuchar nuevos reportes en tiempo real y notificar a los administradores
+ * Solo notifica reportes dentro del radio de cobertura configurado por el admin
  */
 object AdminNotificationService {
 
@@ -30,6 +38,16 @@ object AdminNotificationService {
     private var reportesListener: ListenerRegistration? = null
     private var isListening = false
     private var lastReportTimestamp: Long = 0
+    private var ubicacionAdmin: Location? = null
+    private var appContext: Context? = null
+
+    /**
+     * Obtiene el radio de cobertura desde las preferencias
+     */
+    private fun getRadioCobertura(): Double {
+        return appContext?.let { AdminPreferences.getRadioCoberturaDouble(it) } 
+            ?: AdminPreferences.DEFAULT_RADIO_KM.toDouble()
+    }
 
     /**
      * Inicia la escucha de nuevos reportes en tiempo real
@@ -37,6 +55,7 @@ object AdminNotificationService {
     fun startListening(context: Context) {
         if (isListening) return
 
+        appContext = context.applicationContext
         val currentUser = auth.currentUser ?: return
 
         // Verificar si es admin
@@ -44,9 +63,70 @@ object AdminNotificationService {
             .addOnSuccessListener { doc ->
                 val rol = doc.getString("rol") ?: ""
                 if (rol == "admin" || rol == "policia") {
+                    // Primero obtener ubicación, luego iniciar escucha
+                    obtenerUbicacionYEscuchar(context)
+                }
+            }
+    }
+
+    private fun obtenerUbicacionYEscuchar(context: Context) {
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // Sin permisos, escuchar sin filtro de ubicación
+            iniciarEscuchaReportes(context)
+            return
+        }
+
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+            .addOnSuccessListener { location ->
+                ubicacionAdmin = location
+                iniciarEscuchaReportes(context)
+            }
+            .addOnFailureListener {
+                // Si falla, intentar con última ubicación conocida
+                fusedLocationClient.lastLocation.addOnSuccessListener { lastLocation ->
+                    ubicacionAdmin = lastLocation
                     iniciarEscuchaReportes(context)
                 }
             }
+    }
+
+    /**
+     * Calcula la distancia entre dos puntos geográficos usando la fórmula de Haversine
+     * @return Distancia en kilómetros
+     */
+    private fun calcularDistanciaKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+        val radioTierra = 6371.0 // Radio de la Tierra en km
+
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLon = Math.toRadians(lon2 - lon1)
+
+        val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2)
+
+        val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+        return radioTierra * c
+    }
+
+    /**
+     * Verifica si un reporte está dentro del radio de cobertura
+     */
+    private fun estaEnRadioCobertura(geoPoint: GeoPoint?): Boolean {
+        val ubicacion = ubicacionAdmin ?: return true // Si no hay ubicación, permitir todos
+        
+        if (geoPoint == null) return false
+
+        val distancia = calcularDistanciaKm(
+            ubicacion.latitude,
+            ubicacion.longitude,
+            geoPoint.latitude,
+            geoPoint.longitude
+        )
+
+        return distancia <= getRadioCobertura()
     }
 
     private fun iniciarEscuchaReportes(context: Context) {
@@ -54,6 +134,7 @@ object AdminNotificationService {
 
         // Guardamos el timestamp actual para no notificar reportes antiguos
         lastReportTimestamp = System.currentTimeMillis()
+        val radioActual = getRadioCobertura()
 
         reportesListener = db.collection("reportes")
             .orderBy("timestamp", Query.Direction.DESCENDING)
@@ -71,11 +152,30 @@ object AdminNotificationService {
 
                         // Solo notificar si es un reporte nuevo (después de iniciar la escucha)
                         if (timestamp > lastReportTimestamp - 5000) {
-                            val categoria = doc.getString("categoria") ?: "Reporte"
-                            val descripcion = doc.getString("descripcion") ?: "Nuevo reporte recibido"
-                            val reporteId = doc.id
+                            // Verificar si el reporte está dentro del radio de cobertura
+                            val geoPoint = doc.getGeoPoint("ubicacion")
+                            
+                            if (estaEnRadioCobertura(geoPoint)) {
+                                val categoria = doc.getString("categoria") ?: "Reporte"
+                                val descripcion = doc.getString("descripcion") ?: "Nuevo reporte recibido"
+                                val reporteId = doc.id
 
-                            mostrarNotificacionNuevoReporte(context, categoria, descripcion, reporteId)
+                                // Calcular distancia para mostrar en la notificación
+                                val distanciaTexto = if (ubicacionAdmin != null && geoPoint != null) {
+                                    val dist = calcularDistanciaKm(
+                                        ubicacionAdmin!!.latitude,
+                                        ubicacionAdmin!!.longitude,
+                                        geoPoint.latitude,
+                                        geoPoint.longitude
+                                    )
+                                    String.format("(%.1f km)", dist)
+                                } else ""
+
+                                mostrarNotificacionNuevoReporte(context, categoria, descripcion, reporteId, distanciaTexto)
+                            } else {
+                                Log.d(TAG, "Reporte fuera del radio de cobertura (${getRadioCobertura()}km), no se notifica")
+                            }
+                            
                             lastReportTimestamp = timestamp
                         }
                     }
@@ -83,7 +183,7 @@ object AdminNotificationService {
             }
 
         isListening = true
-        Log.d(TAG, "Escucha de reportes iniciada")
+        Log.d(TAG, "Escucha de reportes iniciada (radio: ${radioActual}km)")
     }
 
     /**
@@ -100,7 +200,8 @@ object AdminNotificationService {
         context: Context,
         categoria: String,
         descripcion: String,
-        reporteId: String
+        reporteId: String,
+        distanciaTexto: String = ""
     ) {
         // Intent para abrir el dashboard y mostrar el reporte
         val intent = Intent(context, AdminDashboardActivity::class.java).apply {
@@ -115,9 +216,15 @@ object AdminNotificationService {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        val titulo = if (distanciaTexto.isNotEmpty()) {
+            "🚨 Nuevo Reporte $distanciaTexto: $categoria"
+        } else {
+            "🚨 Nuevo Reporte: $categoria"
+        }
+
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_warning)
-            .setContentTitle("🚨 Nuevo Reporte: $categoria")
+            .setContentTitle(titulo)
             .setContentText(descripcion)
             .setStyle(NotificationCompat.BigTextStyle().bigText(descripcion))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -131,7 +238,7 @@ object AdminNotificationService {
                 reporteId.hashCode(),
                 notification
             )
-            Log.d(TAG, "Notificación mostrada para reporte: $reporteId")
+            Log.d(TAG, "Notificación mostrada para reporte: $reporteId $distanciaTexto")
         } catch (e: SecurityException) {
             Log.e(TAG, "Sin permiso para mostrar notificaciones", e)
         }

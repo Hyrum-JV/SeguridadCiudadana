@@ -1,16 +1,24 @@
 package com.example.seguridadciudadana.Admin
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.seguridadciudadana.Inicio.ReporteZona
 import com.example.seguridadciudadana.R
 import com.example.seguridadciudadana.databinding.ActivityAdminDashboardBinding
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
@@ -21,8 +29,11 @@ class AdminDashboardActivity : AppCompatActivity() {
 
     private lateinit var adapter: AdminReportAdapter
     private lateinit var statsAdapter: StatAdapter
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     private var listaReportes: MutableList<ReporteZona> = mutableListOf()
+    private var listaReportesCercanos: MutableList<ReporteZona> = mutableListOf()
+    private var ubicacionAdmin: Location? = null
 
     private val estadosMap = linkedMapOf(
         "Todos" to "Todos",
@@ -33,21 +44,50 @@ class AdminDashboardActivity : AppCompatActivity() {
         "Noticia falsa" to "Noticia falsa"
     )
 
+    companion object {
+        private const val LOCATION_PERMISSION_REQUEST = 1001
+    }
+
+    /**
+     * Obtiene el radio de cobertura desde las preferencias
+     */
+    private fun getRadioCobertura(): Double {
+        return AdminPreferences.getRadioCoberturaDouble(this)
+    }
+
+    /**
+     * Callback cuando el radio de cobertura cambia desde el perfil
+     */
+    fun onRadioCoberturaChanged() {
+        actualizarTituloConRadio()
+        // Re-filtrar los reportes con el nuevo radio
+        if (listaReportes.isNotEmpty()) {
+            listaReportesCercanos.clear()
+            listaReportesCercanos.addAll(filtrarReportesPorRadio(listaReportes))
+            actualizarEstadisticas()
+            aplicarFiltros()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAdminDashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
         configurarRvStats()
         iniciarRecycler()
         iniciarSpinner()
-        cargarReportes()
+        
+        // Obtener ubicación y luego cargar reportes cercanos
+        obtenerUbicacionYCargarReportes()
 
         // Iniciar escucha de notificaciones en tiempo real
         AdminNotificationService.startListening(this)
         AdminNotificationService.suscribirATopicReportes()
 
-        binding.btnRefresh.setOnClickListener { cargarReportes() }
+        binding.btnRefresh.setOnClickListener { obtenerUbicacionYCargarReportes() }
 
         // Botón para abrir el mapa de incidentes
         binding.fabOpenMap.setOnClickListener { abrirMapaIncidentes() }
@@ -80,6 +120,118 @@ class AdminDashboardActivity : AppCompatActivity() {
                 binding.adminContainer.visibility = View.GONE
             } else {
                 binding.adminContainer.visibility = View.VISIBLE
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun obtenerUbicacionYCargarReportes() {
+        if (!tienePermisosUbicacion()) {
+            solicitarPermisosUbicacion()
+            return
+        }
+
+        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+            .addOnSuccessListener { location ->
+                if (location != null) {
+                    ubicacionAdmin = location
+                    actualizarTituloConRadio()
+                    cargarReportes()
+                } else {
+                    // Si no hay ubicación actual, intentar con la última conocida
+                    fusedLocationClient.lastLocation.addOnSuccessListener { lastLocation ->
+                        if (lastLocation != null) {
+                            ubicacionAdmin = lastLocation
+                            actualizarTituloConRadio()
+                            cargarReportes()
+                        } else {
+                            Toast.makeText(this, "No se pudo obtener tu ubicación. Mostrando todos los reportes.", Toast.LENGTH_LONG).show()
+                            cargarReportes()
+                        }
+                    }
+                }
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Error al obtener ubicación: ${it.message}", Toast.LENGTH_SHORT).show()
+                cargarReportes()
+            }
+    }
+
+    private fun tienePermisosUbicacion(): Boolean {
+        return ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+               ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun solicitarPermisosUbicacion() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ),
+            LOCATION_PERMISSION_REQUEST
+        )
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == LOCATION_PERMISSION_REQUEST) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                obtenerUbicacionYCargarReportes()
+            } else {
+                Toast.makeText(this, "Se requiere permiso de ubicación para filtrar por zona", Toast.LENGTH_LONG).show()
+                cargarReportes() // Cargar sin filtro de ubicación
+            }
+        }
+    }
+
+    private fun actualizarTituloConRadio() {
+        val radio = getRadioCobertura().toInt()
+        binding.toolbarAdmin.subtitle = "Radio de cobertura: $radio km"
+    }
+
+    /**
+     * Calcula la distancia entre dos puntos geográficos usando la fórmula de Haversine
+     * @return Distancia en kilómetros
+     */
+    private fun calcularDistanciaKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+        val radioTierra = 6371.0 // Radio de la Tierra en km
+
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLon = Math.toRadians(lon2 - lon1)
+
+        val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2)
+
+        val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+        return radioTierra * c
+    }
+
+    /**
+     * Filtra los reportes que están dentro del radio de cobertura
+     */
+    private fun filtrarReportesPorRadio(reportes: List<ReporteZona>): List<ReporteZona> {
+        val ubicacion = ubicacionAdmin ?: return reportes // Si no hay ubicación, devolver todos
+        val radioCobertura = getRadioCobertura()
+
+        return reportes.filter { reporte ->
+            val geoPoint = reporte.ubicacion
+            if (geoPoint != null) {
+                val distancia = calcularDistanciaKm(
+                    ubicacion.latitude,
+                    ubicacion.longitude,
+                    geoPoint.latitude,
+                    geoPoint.longitude
+                )
+                distancia <= radioCobertura
+            } else {
+                false // Si el reporte no tiene ubicación, no incluirlo
             }
         }
     }
@@ -161,6 +313,23 @@ class AdminDashboardActivity : AppCompatActivity() {
                         d.toObject(ReporteZona::class.java)?.copy(id = d.id)
                     }
                 )
+                
+                // Filtrar por radio de cobertura
+                listaReportesCercanos.clear()
+                listaReportesCercanos.addAll(filtrarReportesPorRadio(listaReportes))
+                
+                // Mostrar cuántos reportes hay en la zona
+                val totalReportes = listaReportes.size
+                val reportesCercanos = listaReportesCercanos.size
+                
+                if (ubicacionAdmin != null) {
+                    Toast.makeText(
+                        this, 
+                        "📍 $reportesCercanos reportes en tu zona (de $totalReportes totales)", 
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                
                 actualizarEstadisticas()
                 aplicarFiltros()
             }
@@ -170,11 +339,12 @@ class AdminDashboardActivity : AppCompatActivity() {
     }
 
     private fun actualizarEstadisticas() {
-        val pendientes = listaReportes.count { it.estado == "Pendiente" }
-        val enProceso = listaReportes.count { 
+        // Estadísticas solo de reportes cercanos
+        val pendientes = listaReportesCercanos.count { it.estado == "Pendiente" }
+        val enProceso = listaReportesCercanos.count { 
             it.estado == "Policía verificando" || it.estado == "Pendiente de resolución" 
         }
-        val resueltos = listaReportes.count { it.estado == "Caso resuelto" }
+        val resueltos = listaReportesCercanos.count { it.estado == "Caso resuelto" }
 
         statsAdapter.updateStats(
             listOf(
@@ -187,7 +357,8 @@ class AdminDashboardActivity : AppCompatActivity() {
 
     @SuppressLint("NotifyDataSetChanged")
     private fun aplicarFiltros() {
-        var filtrados = listaReportes.toList()
+        // Usar la lista de reportes cercanos (filtrados por radio)
+        var filtrados = listaReportesCercanos.toList()
 
         val estadoSeleccionado = binding.spinnerFilterStatus.selectedItem.toString()
         if (estadoSeleccionado != "Todos") {
