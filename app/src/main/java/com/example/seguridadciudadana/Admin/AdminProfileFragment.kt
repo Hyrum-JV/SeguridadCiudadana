@@ -18,6 +18,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.slider.Slider
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -42,6 +43,8 @@ class AdminProfileFragment : Fragment() {
     private lateinit var switchNotifications: SwitchMaterial
     private lateinit var tvAppVersion: TextView
     private lateinit var btnCerrarSesion: MaterialButton
+    private lateinit var sliderRadio: Slider
+    private lateinit var tvRadioValue: TextView
 
     companion object {
         fun newInstance(): AdminProfileFragment {
@@ -78,6 +81,8 @@ class AdminProfileFragment : Fragment() {
         switchNotifications = view.findViewById(R.id.switch_notifications)
         tvAppVersion = view.findViewById(R.id.tv_app_version)
         btnCerrarSesion = view.findViewById(R.id.btn_cerrar_sesion)
+        sliderRadio = view.findViewById(R.id.slider_radio)
+        tvRadioValue = view.findViewById(R.id.tv_radio_value)
 
         // Cargar versión de la app
         try {
@@ -86,6 +91,14 @@ class AdminProfileFragment : Fragment() {
         } catch (e: Exception) {
             tvAppVersion.text = "1.0.0"
         }
+
+        // Cargar radio de cobertura guardado
+        val radioGuardado = AdminPreferences.getRadioCobertura(requireContext())
+        sliderRadio.value = radioGuardado
+        tvRadioValue.text = "${radioGuardado.toInt()} km"
+
+        // Cargar estado de notificaciones
+        switchNotifications.isChecked = AdminPreferences.areNotificationsEnabled(requireContext())
     }
 
     private fun setupGoogleSignIn() {
@@ -106,8 +119,35 @@ class AdminProfileFragment : Fragment() {
             mostrarDialogCerrarSesion()
         }
 
+        // Slider de radio de cobertura
+        sliderRadio.addOnChangeListener { _, value, fromUser ->
+            if (fromUser) {
+                tvRadioValue.text = "${value.toInt()} km"
+            }
+        }
+
+        sliderRadio.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {}
+
+            override fun onStopTrackingTouch(slider: Slider) {
+                val nuevoRadio = slider.value
+                AdminPreferences.setRadioCobertura(requireContext(), nuevoRadio)
+                
+                Toast.makeText(
+                    requireContext(),
+                    "📍 Radio de cobertura actualizado a ${nuevoRadio.toInt()} km",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                // Notificar al dashboard que debe recargar con el nuevo radio
+                (activity as? AdminDashboardActivity)?.onRadioCoberturaChanged()
+            }
+        })
+
         // Switch de notificaciones
         switchNotifications.setOnCheckedChangeListener { _, isChecked ->
+            AdminPreferences.setNotificationsEnabled(requireContext(), isChecked)
+            
             if (isChecked) {
                 AdminNotificationService.suscribirATopicReportes()
                 Toast.makeText(requireContext(), "Notificaciones activadas", Toast.LENGTH_SHORT).show()
